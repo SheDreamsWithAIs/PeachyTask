@@ -44,4 +44,52 @@ export async function getJson(path) {
   return data;
 }
 
+export async function patchJson(path, body) {
+  const res = await fetch(`${API_BASE_URL}${path}`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    credentials: 'include',
+    body: JSON.stringify(body),
+  });
+  let data = null;
+  try {
+    data = await res.json();
+  } catch {
+    // ignore parse errors for empty responses
+  }
+  if (!res.ok) {
+    const message = Array.isArray(data?.detail)
+      ? data.detail.map((d) => d.msg).join(', ')
+      : (data && (data.detail || data.message)) || `Request failed (${res.status})`;
+    const err = new Error(message);
+    err.status = res.status;
+    err.data = data;
+    throw err;
+  }
+  return data;
+}
+
+export async function deleteJson(path) {
+  const res = await fetch(`${API_BASE_URL}${path}`, {
+    method: 'DELETE',
+    credentials: 'include',
+  });
+  let data = null;
+  try {
+    data = await res.json();
+  } catch {
+    // allow empty body (e.g., 204 No Content)
+  }
+  if (!res.ok) {
+    const message = Array.isArray(data?.detail)
+      ? data.detail.map((d) => d.msg).join(', ')
+      : (data && (data.detail || data.message)) || `Request failed (${res.status})`;
+    const err = new Error(message);
+    err.status = res.status;
+    err.data = data;
+    throw err;
+  }
+  return data;
+}
+
 
