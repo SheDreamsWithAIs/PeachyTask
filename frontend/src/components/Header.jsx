@@ -13,6 +13,7 @@ export default function Header() {
           {user ? (
             <>
               <span className="text-sm text-gray-600">{user.email}</span>
+              <Link href="/dashboard" className="px-3 py-1.5 text-sm bg-blue-600 hover:bg-blue-700 text-white rounded">Dashboard</Link>
               <button onClick={logout} className="px-3 py-1.5 text-sm bg-gray-100 hover:bg-gray-200 rounded">Logout</button>
             </>
           ) : (

@@ -16,7 +16,8 @@ export default function LoginPage() {
     setLoading(true);
     try {
       await postJson('/auth/login', { email, password });
-      window.location.href = '/';
+      // After login, go to dashboard
+      window.location.href = '/dashboard';
     } catch (err) {
       setError(err.message || 'Login failed');
     } finally {

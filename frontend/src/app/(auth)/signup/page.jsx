@@ -16,7 +16,7 @@ export default function SignupPage() {
     setLoading(true);
     try {
       await postJson('/auth/signup', { email, password });
-      window.location.href = '/';
+      window.location.href = '/dashboard';
     } catch (err) {
       setError(err.message || 'Signup failed');
     } finally {
