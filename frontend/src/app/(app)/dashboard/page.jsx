@@ -381,15 +381,15 @@ export default function DashboardPage() {
 		{/* Delete confirmation modal */}
 		{confirmDeleteId && (
 			<div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
-				<div className="w-full max-w-sm bg-white rounded shadow">
-					<div className="px-4 py-3 border-b">
+				<div className="w-full max-w-sm bg-white rounded-xl shadow-lg border border-orange-200/60">
+					<div className="px-4 py-3 rounded-t-xl bg-gradient-to-r from-orange-500 to-amber-500 text-white">
 						<h2 className="text-base font-semibold">Delete task</h2>
 					</div>
-					<div className="p-4 space-y-3">
+					<div className="p-5 space-y-4">
 						<p className="text-sm text-gray-700">Are you sure you want to delete this task? This action cannot be undone.</p>
 						<div className="flex justify-end gap-2">
-							<button onClick={() => setConfirmDeleteId(null)} className="px-4 py-2 border rounded">Cancel</button>
-							<button onClick={handleConfirmDelete} className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded">Delete</button>
+							<button onClick={() => setConfirmDeleteId(null)} className="px-4 py-2 border border-orange-300 text-gray-700 hover:bg-orange-50 rounded-lg">Cancel</button>
+							<button onClick={handleConfirmDelete} className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg">Delete</button>
 						</div>
 					</div>
 				</div>
@@ -398,10 +398,10 @@ export default function DashboardPage() {
 		{/* Edit modal */}
 		{editingTask && (
 			<div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
-				<div className="w-full max-w-lg bg-white rounded shadow">
-					<div className="flex items-center justify-between px-4 py-3 border-b">
+				<div className="w-full max-w-lg bg-white rounded-xl shadow-lg border border-orange-200/60">
+					<div className="flex items-center justify-between px-4 py-3 rounded-t-xl bg-gradient-to-r from-orange-500 to-amber-500 text-white">
 						<h2 className="text-lg font-semibold">Edit Task</h2>
-						<button onClick={() => setEditingTask(null)} className="text-gray-500 hover:text-gray-700" aria-label="Close"><X className="w-5 h-5"/></button>
+						<button onClick={() => setEditingTask(null)} className="text-white/90 hover:text-white" aria-label="Close"><X className="w-5 h-5"/></button>
 					</div>
 					<EditTaskForm task={editingTask} labels={labels} onCancel={() => setEditingTask(null)} onSaved={(updated)=>{
 						setTasks((prev)=>prev.map((t)=>t._id===updated._id?updated:t));
