@@ -78,18 +78,18 @@ function EditTaskForm({ task, labels, onCancel, onSaved }) {
 		<form onSubmit={submit} className="p-4 space-y-4">
 			{error && <div className="text-sm text-red-700 bg-red-100 border border-red-200 rounded p-2">{error}</div>}
 			<div>
-				<label className="block text-sm font-medium mb-1">Title <span className="text-red-500">*</span></label>
-				<input value={title} onChange={(e)=>setTitle(e.target.value)} type="text" className={`w-full px-4 py-2 rounded-lg border bg-white focus:ring-2 focus:ring-orange-500 focus:border-transparent ${fieldErrors.title ? 'border-red-300' : 'border-orange-200'}`}/>
+				<label className="block text-sm font-medium mb-1 dark:text-amber-100">Title <span className="text-red-500">*</span></label>
+				<input value={title} onChange={(e)=>setTitle(e.target.value)} type="text" className={`w-full px-4 py-2 rounded-lg border bg-white dark:bg-stone-900/60 dark:text-amber-100 focus:ring-2 focus:ring-orange-500 focus:border-transparent ${fieldErrors.title ? 'border-red-300' : 'border-orange-200 dark:border-amber-900/40'}`}/>
 				{fieldErrors.title && <p className="mt-1 text-xs text-red-600">{fieldErrors.title}</p>}
 			</div>
 			<div>
-				<label className="block text-sm font-medium mb-1">Description</label>
-				<textarea value={description} onChange={(e)=>setDescription(e.target.value)} rows={3} className="w-full px-4 py-2 rounded-lg border bg-white border-orange-200 focus:ring-2 focus:ring-orange-500 focus:border-transparent"/>
+				<label className="block text-sm font-medium mb-1 dark:text-amber-100">Description</label>
+				<textarea value={description} onChange={(e)=>setDescription(e.target.value)} rows={3} className="w-full px-4 py-2 rounded-lg border bg-white dark:bg-stone-900/60 dark:text-amber-100 border-orange-200 dark:border-amber-900/40 focus:ring-2 focus:ring-orange-500 focus:border-transparent"/>
 			</div>
 			<div className="grid grid-cols-2 gap-4">
 				<div>
-					<label className="block text-sm font-medium mb-1">Priority <span className="text-red-500">*</span></label>
-					<select value={priority} onChange={(e)=>setPriority(e.target.value)} className={`w-full px-4 py-2 rounded-lg border bg-white focus:ring-2 focus:ring-orange-500 focus:border-transparent ${fieldErrors.priority ? 'border-red-300' : 'border-orange-200'}`}>
+					<label className="block text-sm font-medium mb-1 dark:text-amber-100">Priority <span className="text-red-500">*</span></label>
+					<select value={priority} onChange={(e)=>setPriority(e.target.value)} className={`w-full px-4 py-2 rounded-lg border bg-white dark:bg-stone-900/60 dark:text-amber-100 focus:ring-2 focus:ring-orange-500 focus:border-transparent ${fieldErrors.priority ? 'border-red-300' : 'border-orange-200 dark:border-amber-900/40'}`}>
 						<option value="low">Low</option>
 						<option value="medium">Medium</option>
 						<option value="high">High</option>
@@ -97,18 +97,18 @@ function EditTaskForm({ task, labels, onCancel, onSaved }) {
 					{fieldErrors.priority && <p className="mt-1 text-xs text-red-600">{fieldErrors.priority}</p>}
 				</div>
 				<div>
-					<label className="block text-sm font-medium mb-1">Deadline <span className="text-red-500">*</span></label>
-					<input value={deadline} onChange={(e)=>setDeadline(e.target.value)} type="date" className={`w-full px-4 py-2 rounded-lg border bg-white focus:ring-2 focus:ring-orange-500 focus:border-transparent ${fieldErrors.deadline ? 'border-red-300' : 'border-orange-200'}`}/>
+					<label className="block text-sm font-medium mb-1 dark:text-amber-100">Deadline <span className="text-red-500">*</span></label>
+					<input value={deadline} onChange={(e)=>setDeadline(e.target.value)} type="date" className={`w-full px-4 py-2 rounded-lg border bg-white dark:bg-stone-900/60 dark:text-amber-100 focus:ring-2 focus:ring-orange-500 focus:border-transparent ${fieldErrors.deadline ? 'border-red-300' : 'border-orange-200 dark:border-amber-900/40'}`}/>
 					{fieldErrors.deadline && <p className="mt-1 text-xs text-red-600">{fieldErrors.deadline}</p>}
 				</div>
 			</div>
 			<div>
-				<label className="block text-sm font-medium mb-2">Labels</label>
+				<label className="block text-sm font-medium mb-2 dark:text-amber-100">Labels</label>
 				<div className="flex flex-wrap gap-2">
 					{labels.map((l) => {
 						const selected = selectedLabelIds.includes(l._id);
 						return (
-							<button key={l._id} type="button" onClick={()=>toggleLabel(l._id)} className={`px-3 py-1 rounded-full text-sm border-2 transition ${selected ? 'border-orange-500 shadow' : 'border-orange-300 hover:border-orange-500 text-gray-700'}`} style={selected ? { backgroundColor: (l.color || '#f97316') + '20', borderColor: l.color || '#f97316', color: l.color || '#f97316' } : {}}>
+							<button key={l._id} type="button" onClick={()=>toggleLabel(l._id)} className={`px-3 py-1 rounded-full text-sm border-2 transition ${selected ? 'border-orange-500 shadow' : 'border-orange-300 hover:border-orange-500 text-gray-700 dark:text-amber-100'}`} style={selected ? { backgroundColor: (l.color || '#f97316') + '20', borderColor: l.color || '#f97316', color: l.color || '#f97316' } : {}}>
 								<span className="flex items-center gap-1">{selected && <Check className="w-3 h-3"/>}{l.name}</span>
 							</button>
 						);
@@ -116,8 +116,8 @@ function EditTaskForm({ task, labels, onCancel, onSaved }) {
 				</div>
 			</div>
 			<div className="flex justify-end gap-2 pt-2">
-				<button type="button" onClick={onCancel} className="px-4 py-2 border rounded">Cancel</button>
-				<button type="submit" disabled={submitting} className="px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white rounded disabled:opacity-60">Save Changes</button>
+				<button type="button" onClick={onCancel} className="px-4 py-2 border rounded dark:text-amber-100 dark:border-amber-900/40 dark:hover:bg-amber-900/40">Cancel</button>
+				<button type="submit" disabled={submitting} className="px-4 py-2 bg-orange-500 hover:bg-orange-600 dark:bg-amber-800 dark:hover:bg-amber-700 text-white rounded disabled:opacity-60">Save Changes</button>
 			</div>
 		</form>
 	);
@@ -248,7 +248,7 @@ function LabelsManagerModal({ labels: initialLabels, onClose, onCreated, onUpdat
 								</div>
 								<div className="flex justify-end gap-2 pt-2">
 									<button type="button" onClick={()=>setEditing(null)} className="px-4 py-2 border rounded">Cancel</button>
-									<button type="submit" className="px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white rounded">Save Changes</button>
+									<button type="submit" className="px-4 py-2 bg-orange-500 hover:bg-orange-600 dark:bg-amber-800 dark:hover:bg-amber-700 text-white rounded">Save Changes</button>
 								</div>
 							</form>
 						</div>
@@ -449,25 +449,25 @@ export default function DashboardPage() {
 
 				{/* Inline New Task Form */}
 				{showNew && (
-					<form onSubmit={submitNewTask} className="rounded-xl shadow-sm border p-6 mb-6 bg-white/80 dark:bg-orange-900/60 border-orange-200/50 dark:border-orange-800/40 backdrop-blur-sm">
+					<form onSubmit={submitNewTask} className="rounded-xl shadow-sm border p-6 mb-6 bg-white/80 dark:bg-amber-950/70 border-orange-200/50 dark:border-amber-900/40 backdrop-blur-sm">
 						<div className="flex items-center justify-between mb-4">
-							<h3 className="text-lg font-semibold">Create New Task</h3>
-							<button type="button" onClick={() => setShowNew(false)} className="text-gray-500 hover:text-gray-700"><X className="w-5 h-5"/></button>
+							<h3 className="text-lg font-semibold dark:text-amber-100">Create New Task</h3>
+							<button type="button" onClick={() => setShowNew(false)} className="text-gray-500 hover:text-gray-700 dark:text-amber-300 dark:hover:text-amber-100"><X className="w-5 h-5"/></button>
 						</div>
 						<div className="space-y-4">
 							<div>
-								<label className="block text-sm font-medium mb-1">Title <span className="text-red-500">*</span></label>
-								<input value={title} onChange={(e)=>setTitle(e.target.value)} type="text" placeholder="Enter task title..." className={`w-full px-4 py-2 rounded-lg border bg-white focus:ring-2 focus:ring-orange-500 focus:border-transparent ${fieldErrors.title ? 'border-red-300' : 'border-orange-200'}`}/>
+								<label className="block text-sm font-medium mb-1 dark:text-amber-100">Title <span className="text-red-500">*</span></label>
+								<input value={title} onChange={(e)=>setTitle(e.target.value)} type="text" placeholder="Enter task title..." className={`w-full px-4 py-2 rounded-lg border bg-white dark:bg-stone-900/60 dark:text-amber-100 focus:ring-2 focus:ring-orange-500 focus:border-transparent ${fieldErrors.title ? 'border-red-300' : 'border-orange-200 dark:border-amber-900/40'}`}/>
 								{fieldErrors.title && <p className="mt-1 text-xs text-red-600">{fieldErrors.title}</p>}
 							</div>
 							<div>
-								<label className="block text-sm font-medium mb-1">Description</label>
-								<textarea value={description} onChange={(e)=>setDescription(e.target.value)} rows={3} placeholder="Add details about this task..." className="w-full px-4 py-2 rounded-lg border bg-white border-orange-200 focus:ring-2 focus:ring-orange-500 focus:border-transparent"/>
+								<label className="block text-sm font-medium mb-1 dark:text-amber-100">Description</label>
+								<textarea value={description} onChange={(e)=>setDescription(e.target.value)} rows={3} placeholder="Add details about this task..." className="w-full px-4 py-2 rounded-lg border bg-white dark:bg-stone-900/60 dark:text-amber-100 border-orange-200 dark:border-amber-900/40 focus:ring-2 focus:ring-orange-500 focus:border-transparent"/>
 							</div>
 							<div className="grid grid-cols-2 gap-4">
 								<div>
-									<label className="block text-sm font-medium mb-1">Priority <span className="text-red-500">*</span></label>
-									<select value={priority} onChange={(e)=>setPriority(e.target.value)} className={`w-full px-4 py-2 rounded-lg border bg-white focus:ring-2 focus:ring-orange-500 focus:border-transparent ${fieldErrors.priority ? 'border-red-300' : 'border-orange-200'}`}>
+									<label className="block text-sm font-medium mb-1 dark:text-amber-100">Priority <span className="text-red-500">*</span></label>
+									<select value={priority} onChange={(e)=>setPriority(e.target.value)} className={`w-full px-4 py-2 rounded-lg border bg-white dark:bg-stone-900/60 dark:text-amber-100 focus:ring-2 focus:ring-orange-500 focus:border-transparent ${fieldErrors.priority ? 'border-red-300' : 'border-orange-200 dark:border-amber-900/40'}`}>
 										<option value="low">Low</option>
 										<option value="medium">Medium</option>
 										<option value="high">High</option>
@@ -475,18 +475,18 @@ export default function DashboardPage() {
 									{fieldErrors.priority && <p className="mt-1 text-xs text-red-600">{fieldErrors.priority}</p>}
 								</div>
 								<div>
-									<label className="block text-sm font-medium mb-1">Deadline <span className="text-red-500">*</span></label>
-									<input value={deadline} onChange={(e)=>setDeadline(e.target.value)} type="date" className={`w-full px-4 py-2 rounded-lg border bg-white focus:ring-2 focus:ring-orange-500 focus:border-transparent ${fieldErrors.deadline ? 'border-red-300' : 'border-orange-200'}`}/>
+									<label className="block text-sm font-medium mb-1 dark:text-amber-100">Deadline <span className="text-red-500">*</span></label>
+									<input value={deadline} onChange={(e)=>setDeadline(e.target.value)} type="date" className={`w-full px-4 py-2 rounded-lg border bg-white dark:bg-stone-900/60 dark:text-amber-100 focus:ring-2 focus:ring-orange-500 focus:border-transparent ${fieldErrors.deadline ? 'border-red-300' : 'border-orange-200 dark:border-amber-900/40'}`}/>
 									{fieldErrors.deadline && <p className="mt-1 text-xs text-red-600">{fieldErrors.deadline}</p>}
 								</div>
 							</div>
 							<div>
-								<label className="block text-sm font-medium mb-2">Labels</label>
+								<label className="block text-sm font-medium mb-2 dark:text-amber-100">Labels</label>
 								<div className="flex flex-wrap gap-2">
 									{labels.map((l) => {
 										const selected = selectedLabelIds.includes(l._id);
 										return (
-											<button key={l._id} type="button" onClick={()=>toggleLabel(l._id)} className={`px-3 py-1 rounded-full text-sm border-2 transition ${selected ? 'border-orange-500 shadow' : 'border-orange-300 hover:border-orange-500 text-gray-700'}`} style={selected ? { backgroundColor: (l.color || '#f97316') + '20', borderColor: l.color || '#f97316', color: l.color || '#f97316' } : {}}>
+										<button key={l._id} type="button" onClick={()=>toggleLabel(l._id)} className={`px-3 py-1 rounded-full text-sm border-2 transition ${selected ? 'border-orange-500 shadow' : 'border-orange-300 hover:border-orange-500 text-gray-700 dark:text-amber-100'}`} style={selected ? { backgroundColor: (l.color || '#f97316') + '20', borderColor: l.color || '#f97316', color: l.color || '#f97316' } : {}}>
 												<span className="flex items-center gap-1">{selected && <Check className="w-3 h-3"/>}{l.name}</span>
 											</button>
 										);
@@ -494,10 +494,10 @@ export default function DashboardPage() {
 								</div>
 							</div>
 							<div className="flex gap-3 pt-2">
-								<button type="submit" disabled={submitting} className="flex-1 px-4 py-2 rounded-lg bg-orange-500 hover:bg-orange-600 text-white font-medium disabled:opacity-60">
+								<button type="submit" disabled={submitting} className="flex-1 px-4 py-2 rounded-lg bg-orange-500 hover:bg-orange-600 dark:bg-amber-800 dark:hover:bg-amber-700 text-white font-medium disabled:opacity-60">
 									<span className="flex items-center justify-center gap-2"><Check className="w-4 h-4"/>Create Task</span>
 								</button>
-								<button type="button" onClick={()=>setShowNew(false)} className="px-4 py-2 rounded-lg border border-orange-300 text-gray-700 hover:bg-orange-50">Cancel</button>
+								<button type="button" onClick={()=>setShowNew(false)} className="px-4 py-2 rounded-lg border border-orange-300 text-gray-700 hover:bg-orange-50 dark:text-amber-100 dark:border-amber-900/40 dark:hover:bg-amber-900/40">Cancel</button>
 							</div>
 						</div>
 					</form>
