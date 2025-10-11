@@ -80,6 +80,7 @@ export default function DashboardPage() {
 	};
 
 	return (
+		<>
 		<div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
 			{/* Sidebar: Filters and Labels */}
 			<aside className="lg:col-span-1">
@@ -214,6 +215,12 @@ export default function DashboardPage() {
 				)}
 			</section>
 		</div>
+		<footer className="mt-10 border-t border-orange-200/60">
+			<div className="max-w-6xl mx-auto px-2 sm:px-0 py-6 text-center text-xs text-gray-600">
+				<span>🍑 Peachy Task — Make everything peachy.</span>
+			</div>
+		</footer>
+		</>
 	);
 }
 
