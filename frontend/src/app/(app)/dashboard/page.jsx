@@ -181,23 +181,23 @@ function LabelsManagerModal({ labels: initialLabels, onClose, onCreated, onUpdat
 	};
 
 	return (
-		<div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
-			<div className="w-full max-w-xl bg-white rounded-xl shadow-lg border border-orange-200/60">
-				<div className="flex items-center justify-between px-4 py-3 rounded-t-xl bg-gradient-to-r from-orange-500 to-amber-500 text-white">
+		<div className="fixed inset-0 z-50 flex items-center justify-center bg-transparent p-4">
+			<div className="w-full max-w-xl bg-white dark:bg-amber-950 rounded-xl shadow-lg border border-orange-200/60 dark:border-amber-900/40">
+				<div className="flex items-center justify-between px-4 py-3 rounded-t-xl bg-gradient-to-r from-orange-500 to-amber-500 dark:from-amber-800 dark:to-orange-900 text-white">
 					<h2 className="text-lg font-semibold">Manage Labels</h2>
 					<button onClick={onClose} className="text-white/90 hover:text-white" aria-label="Close"><X className="w-5 h-5"/></button>
 				</div>
-				<div className="p-5 space-y-5">
-					{error && <div className="text-sm text-red-700 bg-red-100 border border-red-200 rounded p-2">{error}</div>}
-					<form onSubmit={onCreate} className="rounded-xl shadow-sm border p-4 bg-white/80 border-orange-200/50 backdrop-blur-sm">
+					<div className="p-5 space-y-5">
+						{error && <div className="text-sm text-red-700 bg-red-100 border border-red-200 rounded p-2">{error}</div>}
+						<form onSubmit={onCreate} className="rounded-xl shadow-sm border p-4 bg-white/80 dark:bg-orange-900/60 border-orange-200/50 dark:border-orange-800/40 backdrop-blur-sm">
 						<div className="flex flex-col sm:flex-row gap-3 items-start sm:items-end">
 							<div className="flex-1 w-full">
-								<label className="block text-sm font-medium mb-1">Label name <span className="text-red-500">*</span></label>
-								<input value={name} onChange={(e)=>setName(e.target.value)} placeholder="e.g. Work" className="w-full px-4 py-2 rounded-lg border bg-white border-orange-200 focus:ring-2 focus:ring-orange-500 focus:border-transparent"/>
+									<label className="block text-sm font-medium mb-1 dark:text-amber-100">Label name <span className="text-red-500">*</span></label>
+									<input value={name} onChange={(e)=>setName(e.target.value)} placeholder="e.g. Work" className="w-full px-4 py-2 rounded-lg border bg-white dark:bg-stone-900/60 dark:text-amber-100 border-orange-200 dark:border-amber-900/40 focus:ring-2 focus:ring-orange-500 focus:border-transparent"/>
 							</div>
 							<div>
-								<label className="block text-sm font-medium mb-1">Color</label>
-								<input type="color" value={color} onChange={(e)=>setColor(e.target.value)} className="h-10 w-16 border rounded"/>
+									<label className="block text-sm font-medium mb-1 dark:text-amber-100">Color</label>
+									<input type="color" value={color} onChange={(e)=>setColor(e.target.value)} className="h-10 w-16 border rounded dark:bg-stone-900/60 dark:border-amber-900/40"/>
 							</div>
 							<div>
 								<button type="submit" disabled={submitting} className="px-4 py-2 rounded-lg bg-orange-500 hover:bg-orange-600 text-white disabled:opacity-60 flex items-center gap-2">
@@ -207,20 +207,20 @@ function LabelsManagerModal({ labels: initialLabels, onClose, onCreated, onUpdat
 						</div>
 					</form>
 
-					<div className="rounded-xl shadow-sm border p-4 bg-white/80 border-orange-200/50 backdrop-blur-sm">
+						<div className="rounded-xl shadow-sm border p-4 bg-white/80 dark:bg-orange-900/60 border-orange-200/50 dark:border-orange-800/40 backdrop-blur-sm">
 						{labels.length === 0 ? (
-							<div className="text-sm text-gray-600">No labels yet.</div>
+								<div className="text-sm text-gray-600 dark:text-amber-200/90">No labels yet.</div>
 						) : (
 							<ul className="divide-y">
 								{labels.map((l) => (
-									<li key={l._id} className="py-3 flex items-center justify-between">
-										<div className="flex items-center gap-3">
-											<span className="w-3 h-3 rounded-full" style={{ backgroundColor: l.color || '#f97316' }} />
-											<span className="font-medium text-gray-800">{l.name}</span>
-										</div>
+										<li key={l._id} className="py-3 flex items-center justify-between">
+											<div className="flex items-center gap-3">
+												<span className="w-3 h-3 rounded-full" style={{ backgroundColor: l.color || '#f97316' }} />
+												<span className="font-medium text-gray-800 dark:text-amber-100">{l.name}</span>
+											</div>
 										<div className="flex items-center gap-2">
-											<button onClick={() => setEditing(l)} className="p-2 rounded-lg text-gray-400 hover:text-orange-600 hover:bg-orange-50" aria-label="Edit label"><Edit2 className="w-4 h-4"/></button>
-											<button onClick={() => setDeletingId(l._id)} className="p-2 rounded-lg text-gray-400 hover:text-red-600 hover:bg-red-50" aria-label="Delete label"><Trash2 className="w-4 h-4"/></button>
+												<button onClick={() => setEditing(l)} className="p-2 rounded-lg text-gray-400 hover:text-orange-600 hover:bg-orange-50 dark:text-amber-300 dark:hover:text-amber-100 dark:hover:bg-amber-900/40" aria-label="Edit label"><Edit2 className="w-4 h-4"/></button>
+												<button onClick={() => setDeletingId(l._id)} className="p-2 rounded-lg text-gray-400 hover:text-red-600 hover:bg-red-50 dark:text-amber-300 dark:hover:text-red-400 dark:hover:bg-red-900/30" aria-label="Delete label"><Trash2 className="w-4 h-4"/></button>
 										</div>
 									</li>
 								))}
@@ -231,9 +231,9 @@ function LabelsManagerModal({ labels: initialLabels, onClose, onCreated, onUpdat
 
 				{/* Edit label modal nested */}
 				{editing && (
-					<div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/40 p-4">
-						<div className="w-full max-w-md bg-white rounded-xl shadow-lg border border-orange-200/60">
-							<div className="flex items-center justify-between px-4 py-3 rounded-t-xl bg-gradient-to-r from-orange-500 to-amber-500 text-white">
+					<div className="fixed inset-0 z-[60] flex items-center justify-center bg-transparent p-4">
+						<div className="w-full max-w-md bg-white dark:bg-amber-950 rounded-xl shadow-lg border border-orange-200/60 dark:border-amber-900/40">
+							<div className="flex items-center justify-between px-4 py-3 rounded-t-xl bg-gradient-to-r from-orange-500 to-amber-500 dark:from-amber-800 dark:to-orange-900 text-white">
 								<h2 className="text-lg font-semibold">Edit Label</h2>
 								<button onClick={()=>setEditing(null)} className="text-white/90 hover:text-white" aria-label="Close"><X className="w-5 h-5"/></button>
 							</div>
@@ -257,9 +257,9 @@ function LabelsManagerModal({ labels: initialLabels, onClose, onCreated, onUpdat
 
 				{/* Delete confirm nested */}
 				{deletingId && (
-					<div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/40 p-4">
-						<div className="w-full max-w-sm bg-white rounded-xl shadow-lg border border-orange-200/60">
-							<div className="px-4 py-3 rounded-t-xl bg-gradient-to-r from-orange-500 to-amber-500 text-white">
+					<div className="fixed inset-0 z-[60] flex items-center justify-center bg-transparent p-4">
+						<div className="w-full max-w-sm bg-white dark:bg-amber-950 rounded-xl shadow-lg border border-orange-200/60 dark:border-amber-900/40">
+							<div className="px-4 py-3 rounded-t-xl bg-gradient-to-r from-orange-500 to-amber-500 dark:from-amber-800 dark:to-orange-900 text-white">
 								<h2 className="text-base font-semibold">Delete label</h2>
 							</div>
 							<div className="p-5 space-y-4">
@@ -554,15 +554,15 @@ export default function DashboardPage() {
 		</div>
 		{/* Delete confirmation modal */}
 		{confirmDeleteId && (
-			<div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
-				<div className="w-full max-w-sm bg-white rounded-xl shadow-lg border border-orange-200/60">
-					<div className="px-4 py-3 rounded-t-xl bg-gradient-to-r from-orange-500 to-amber-500 text-white">
+			<div className="fixed inset-0 z-50 flex items-center justify-center bg-transparent p-4">
+				<div className="w-full max-w-sm bg-white rounded-xl shadow-lg border border-orange-200/60 dark:bg-[#1a0e00] dark:border-amber-900/60">
+					<div className="px-4 py-3 rounded-t-xl bg-gradient-to-r from-orange-500 to-amber-500 dark:from-amber-800 dark:to-orange-900 text-white">
 						<h2 className="text-base font-semibold">Delete task</h2>
 					</div>
 					<div className="p-5 space-y-4">
-						<p className="text-sm text-gray-700">Are you sure you want to delete this task? This action cannot be undone.</p>
+						<p className="text-sm text-gray-700 dark:text-amber-200/90">Are you sure you want to delete this task? This action cannot be undone.</p>
 						<div className="flex justify-end gap-2">
-							<button onClick={() => setConfirmDeleteId(null)} className="px-4 py-2 border border-orange-300 text-gray-700 hover:bg-orange-50 rounded-lg">Cancel</button>
+							<button onClick={() => setConfirmDeleteId(null)} className="px-4 py-2 border border-orange-300 text-gray-700 hover:bg-orange-50 dark:text-amber-100 dark:border-amber-800/50 dark:hover:bg-amber-900/40 rounded-lg">Cancel</button>
 							<button onClick={handleConfirmDelete} className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg">Delete</button>
 						</div>
 					</div>
@@ -571,9 +571,9 @@ export default function DashboardPage() {
 		)}
 		{/* Edit modal */}
 		{editingTask && (
-			<div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
-				<div className="w-full max-w-lg bg-white rounded-xl shadow-lg border border-orange-200/60">
-					<div className="flex items-center justify-between px-4 py-3 rounded-t-xl bg-gradient-to-r from-orange-500 to-amber-500 text-white">
+			<div className="fixed inset-0 z-50 flex items-center justify-center bg-amber-950 p-4">
+				<div className="w-full max-w-lg bg-white rounded-xl shadow-lg border border-orange-200/60 dark:bg-stone-900/80 dark:border-amber-900/40">
+					<div className="flex items-center justify-between px-4 py-3 rounded-t-xl bg-gradient-to-r from-orange-500 to-amber-500 dark:from-amber-800 dark:to-orange-900 text-white">
 						<h2 className="text-lg font-semibold">Edit Task</h2>
 						<button onClick={() => setEditingTask(null)} className="text-white/90 hover:text-white" aria-label="Close"><X className="w-5 h-5"/></button>
 					</div>
