@@ -8,6 +8,7 @@ from app.schemas.task import TaskBase, TaskCreate
 from app.utils.database import get_database_or_none
 from app.models.task import TaskModel
 from app.utils.auth import decode_access_token
+from app.models.label import LabelModel
 
 
 router = APIRouter()
@@ -57,7 +58,17 @@ async def create_task(payload: TaskBase, request: Request):
     doc: Dict[str, Any] = tc.model_dump()
     doc["user_id"] = ObjectId(doc["user_id"])  # to ObjectId
     if doc.get("label_ids"):
-        doc["label_ids"] = [ObjectId(x) for x in doc["label_ids"]]
+        # Validate labels belong to the requesting user and exist
+        label_model = LabelModel(db)
+        validated_label_ids: List[ObjectId] = []
+        for label_id_str in doc["label_ids"]:
+            label_doc = await label_model.get_by_id_str(label_id_str)
+            if not label_doc:
+                raise HTTPException(status_code=400, detail="Label does not exist")
+            if label_doc.get("user_id") != user_id:
+                raise HTTPException(status_code=403, detail="Label does not belong to user")
+            validated_label_ids.append(ObjectId(label_id_str))
+        doc["label_ids"] = validated_label_ids
     # deadline is already coerced to timezone-aware datetime by schema
 
     task_model = TaskModel(db)
@@ -111,7 +122,18 @@ async def update_task(task_id: str, payload: Dict[str, Any], request: Request) -
     upd = TaskUpdate.model_validate(payload)
     fields = {k: v for k, v in upd.model_dump(exclude_unset=True).items()}
     if "label_ids" in fields and fields["label_ids"] is not None:
-        fields["label_ids"] = [ObjectId(x) for x in fields["label_ids"]]
+        # Validate labels belong to user
+        label_model = LabelModel(db)
+        input_label_ids: List[str] = fields["label_ids"]
+        validated_label_ids: List[ObjectId] = []
+        for label_id_str in input_label_ids:
+            label_doc = await label_model.get_by_id_str(label_id_str)
+            if not label_doc:
+                raise HTTPException(status_code=400, detail="Label does not exist")
+            if label_doc.get("user_id") != user_id:
+                raise HTTPException(status_code=403, detail="Label does not belong to user")
+            validated_label_ids.append(ObjectId(label_id_str))
+        fields["label_ids"] = validated_label_ids
     ok = await task_model.update_fields(task_id, fields)
     if not ok:
         raise HTTPException(status_code=404, detail="Task not found")
