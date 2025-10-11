@@ -1,0 +1,17 @@
+# Packages needed for the backend
+fastapi==0.104.1
+uvicorn[standard]==0.24.0
+python-multipart==0.0.6
+pymongo==4.6.0
+python-dotenv==1.0.0
+email-validator==2.1.0  # Required for EmailStr in Pydantic
+beanie==1.26.0  # MongoDB ODM with Pydantic integration
+motor==3.3.2  # Async MongoDB driver
+passlib==1.7.4  # Password hashing
+bcrypt==4.0.1  # Bcrypt backend for passlib
+python-jose[cryptography]==3.3.0  # JWT token handling
+
+# Testing dependencies
+pytest==7.4.3
+httpx==0.24.1  # Match the version that works with FastAPI 0.104.1
+pytest-asyncio==0.23.2  # Required for async tests

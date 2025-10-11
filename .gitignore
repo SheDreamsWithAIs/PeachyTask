@@ -1,0 +1,19 @@
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# Env & local
+.env
+.env.*
+.env.local
+!.env.example
+
+# OS/editor junk
+.DS_Store
+Thumbs.db
+.vscode/
+
+# AI Guidance Documentation
+/AI_docs

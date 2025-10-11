@@ -1,0 +1,4 @@
+# Env & local
+.env
+.env.*
+!.env.example
