@@ -47,6 +47,7 @@ export default function LoginPage() {
         {error && (
           <div className="mb-4 text-sm text-red-700 bg-red-100 border border-red-200 rounded p-2">{error}</div>
         )}
+        </div>
         <form onSubmit={onSubmit} className="space-y-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-amber-200">Email</label>
