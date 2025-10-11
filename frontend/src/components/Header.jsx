@@ -20,15 +20,15 @@ export default function Header() {
     }
   }, [dark]);
   return (
-    <header className="w-full shadow-md border-b bg-gradient-to-r from-orange-500 via-amber-500 to-orange-500 border-orange-400/50">
+    <header className="w-full shadow-md border-b bg-gradient-to-r from-orange-500 via-amber-500 to-orange-500 border-orange-400/50 dark:from-amber-900 dark:via-orange-950 dark:to-amber-900 dark:border-amber-800/50">
       <div className="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
         <Link href="/dashboard" className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl flex items-center justify-center shadow-lg" style={{ backgroundColor: '#fce4d2' }}>
+          <div className="w-10 h-10 rounded-xl flex items-center justify-center shadow-lg dark:bg-gradient-to-br dark:from-amber-800 dark:to-orange-900" style={{ backgroundColor: '#fce4d2' }}>
             <span className="text-2xl">🍑</span>
           </div>
           <div className="leading-tight">
             <div className="text-white font-bold">Peachy Task</div>
-            <div className="text-[11px] italic text-orange-50/90">Everything's peachy when you get things done.</div>
+            <div className="text-[11px] italic text-orange-50/90 dark:text-amber-200/80">Everything's peachy when you get things done.</div>
           </div>
         </Link>
         <nav className="flex items-center gap-2 sm:gap-4">

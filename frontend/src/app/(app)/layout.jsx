@@ -17,7 +17,7 @@ export default function AppLayout({ children }) {
 
   if (loading || !user) return null;
   return (
-    <div className="min-h-screen bg-gradient-to-br from-orange-50 via-amber-50 to-peach-50">
+    <div className="min-h-screen transition-colors bg-gradient-to-br from-orange-50 via-amber-50 to-peach-50 dark:from-stone-900 dark:via-amber-950 dark:to-stone-900">
       <Header />
       <div className="max-w-6xl mx-auto p-4">{children}</div>
     </div>

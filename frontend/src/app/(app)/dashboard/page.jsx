@@ -401,17 +401,17 @@ export default function DashboardPage() {
 		<div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
 			{/* Sidebar: Filters and Labels */}
 			<aside className="lg:col-span-1">
-				<div className="rounded-xl shadow-sm border p-4 bg-white/80 border-orange-200/50 backdrop-blur-sm">
-					<h2 className="text-lg font-semibold mb-4">Filters</h2>
+				<div className="rounded-xl shadow-sm border p-4 bg-white/80 dark:bg-orange-900/60 border-orange-200/50 dark:border-orange-800/40 backdrop-blur-sm">
+					<h2 className="text-lg font-semibold mb-4 dark:text-amber-100">Filters</h2>
 					<div className="space-y-2 mb-6">
-						<button onClick={() => setFilter('all')} className={`w-full text-left px-3 py-2 rounded-lg ${filter === 'all' ? 'bg-orange-100 text-orange-700 font-medium' : 'text-gray-700 hover:bg-orange-50'}`}>All Tasks ({tasks.length})</button>
-						<button onClick={() => setFilter('active')} className={`w-full text-left px-3 py-2 rounded-lg ${filter === 'active' ? 'bg-orange-100 text-orange-700 font-medium' : 'text-gray-700 hover:bg-orange-50'}`}>Active ({tasks.filter((t)=>!t.completed).length})</button>
-						<button onClick={() => setFilter('completed')} className={`w-full text-left px-3 py-2 rounded-lg ${filter === 'completed' ? 'bg-orange-100 text-orange-700 font-medium' : 'text-gray-700 hover:bg-orange-50'}`}>Completed ({tasks.filter((t)=>t.completed).length})</button>
+						<button onClick={() => setFilter('all')} className={`w-full text-left px-3 py-2 rounded-lg ${filter === 'all' ? 'bg-orange-100 text-orange-700 font-medium dark:bg-amber-800/50 dark:text-amber-100' : 'text-gray-700 hover:bg-orange-50 dark:text-amber-200 dark:hover:bg-amber-900/40'}`}>All Tasks ({tasks.length})</button>
+						<button onClick={() => setFilter('active')} className={`w-full text-left px-3 py-2 rounded-lg ${filter === 'active' ? 'bg-orange-100 text-orange-700 font-medium dark:bg-amber-800/50 dark:text-amber-100' : 'text-gray-700 hover:bg-orange-50 dark:text-amber-200 dark:hover:bg-amber-900/40'}`}>Active ({tasks.filter((t)=>!t.completed).length})</button>
+						<button onClick={() => setFilter('completed')} className={`w-full text-left px-3 py-2 rounded-lg ${filter === 'completed' ? 'bg-orange-100 text-orange-700 font-medium dark:bg-amber-800/50 dark:text-amber-100' : 'text-gray-700 hover:bg-orange-50 dark:text-amber-200 dark:hover:bg-amber-900/40'}`}>Completed ({tasks.filter((t)=>t.completed).length})</button>
 					</div>
 					<div className="border-t border-orange-200 pt-4">
 						<div className="flex items-center justify-between mb-3">
-							<h3 className="text-sm font-semibold">Labels</h3>
-							<button onClick={() => setShowLabelsManager(true)} className="text-orange-600 hover:text-orange-700 flex items-center gap-1 text-sm" title="Manage labels">
+							<h3 className="text-sm font-semibold dark:text-amber-100">Labels</h3>
+							<button onClick={() => setShowLabelsManager(true)} className="text-orange-600 hover:text-orange-700 dark:text-amber-200 dark:hover:text-amber-100 flex items-center gap-1 text-sm" title="Manage labels">
 								<Plus className="w-4 h-4" />
 								Manage
 							</button>
@@ -420,7 +420,7 @@ export default function DashboardPage() {
 							{labels.map((l) => {
 								const selected = activeLabelIds.includes(l._id);
 								return (
-									<button key={l._id} type="button" onClick={()=>setActiveLabelIds((prev)=>selected ? prev.filter((id)=>id!==l._id) : [...prev, l._id])} className={`w-full flex items-center justify-between px-3 py-2 rounded-lg transition ${selected ? 'bg-orange-100 text-orange-700 font-medium' : 'hover:bg-orange-50'}`}>
+									<button key={l._id} type="button" onClick={()=>setActiveLabelIds((prev)=>selected ? prev.filter((id)=>id!==l._id) : [...prev, l._id])} className={`w-full flex items-center justify-between px-3 py-2 rounded-lg transition ${selected ? 'bg-orange-100 text-orange-700 font-medium dark:bg-amber-800/50 dark:text-amber-100' : 'hover:bg-orange-50 dark:text-amber-200 dark:hover:bg-amber-900/40'}`}>
 										<span className="flex items-center gap-2">
 											<span className="w-3 h-3 rounded-full" style={{ backgroundColor: l.color || '#f97316' }} />
 											<span className="text-sm">{l.name}</span>
@@ -430,7 +430,7 @@ export default function DashboardPage() {
 								);
 							})}
 							{labels.length > 0 && (
-								<button type="button" onClick={()=>setActiveLabelIds([])} className="mt-2 text-xs text-gray-600 hover:text-gray-800 underline">Clear labels</button>
+								<button type="button" onClick={()=>setActiveLabelIds([])} className="mt-2 text-xs text-gray-600 hover:text-gray-800 dark:text-amber-300/80 dark:hover:text-amber-200 underline">Clear labels</button>
 							)}
 						</div>
 					</div>
@@ -440,7 +440,7 @@ export default function DashboardPage() {
 			{/* Main content */}
 			<section className="lg:col-span-3">
 				<div className="mb-6">
-					<button onClick={() => setShowNew((v)=>!v)} className="w-full px-6 py-3 rounded-xl shadow-md hover:shadow-lg transition flex items-center justify-center gap-2 font-medium bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white">
+					<button onClick={() => setShowNew((v)=>!v)} className="w-full px-6 py-3 rounded-xl shadow-md hover:shadow-lg transition flex items-center justify-center gap-2 font-medium bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 dark:from-amber-800 dark:to-orange-900 dark:hover:from-amber-700 dark:hover:to-orange-800 text-white">
 						<Plus className="w-5 h-5"/>
 						New Task
 					</button>
@@ -449,7 +449,7 @@ export default function DashboardPage() {
 
 				{/* Inline New Task Form */}
 				{showNew && (
-					<form onSubmit={submitNewTask} className="rounded-xl shadow-sm border p-6 mb-6 bg-white/80 border-orange-200/50 backdrop-blur-sm">
+					<form onSubmit={submitNewTask} className="rounded-xl shadow-sm border p-6 mb-6 bg-white/80 dark:bg-orange-900/60 border-orange-200/50 dark:border-orange-800/40 backdrop-blur-sm">
 						<div className="flex items-center justify-between mb-4">
 							<h3 className="text-lg font-semibold">Create New Task</h3>
 							<button type="button" onClick={() => setShowNew(false)} className="text-gray-500 hover:text-gray-700"><X className="w-5 h-5"/></button>
@@ -505,31 +505,31 @@ export default function DashboardPage() {
 
 				{/* Task list or states */}
 				{loading ? (
-					<div className="rounded-xl shadow-sm border p-12 text-center bg-white/80 border-orange-200/50 backdrop-blur-sm">
-						<p className="text-sm text-gray-600">Loading tasks…</p>
+					<div className="rounded-xl shadow-sm border p-12 text-center bg-white/80 dark:bg-orange-900/60 border-orange-200/50 dark:border-orange-800/40 backdrop-blur-sm">
+						<p className="text-sm text-gray-600 dark:text-amber-200/90">Loading tasks…</p>
 					</div>
 				) : filteredTasks.length === 0 ? (
-					<div className="rounded-xl shadow-sm border p-12 text-center bg-white/80 border-orange-200/50 backdrop-blur-sm">
+					<div className="rounded-xl shadow-sm border p-12 text-center bg-white/80 dark:bg-orange-900/60 border-orange-200/50 dark:border-orange-800/40 backdrop-blur-sm">
 						<div className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 bg-orange-100">
 							<span className="text-4xl">🍑</span>
 						</div>
-						<h3 className="text-lg font-semibold mb-2">No tasks found</h3>
-						<p className="text-sm text-gray-600">{filter === 'completed' ? "You haven't completed any tasks yet. Keep going!" : 'Create a new task and make everything peachy! 🍑'}</p>
+						<h3 className="text-lg font-semibold mb-2 dark:text-amber-100">No tasks found</h3>
+						<p className="text-sm text-gray-600 dark:text-amber-200/90">{filter === 'completed' ? "You haven't completed any tasks yet. Keep going!" : 'Create a new task and make everything peachy! 🍑'}</p>
 					</div>
 				) : (
 					<div className="space-y-3">
 						{filteredTasks.map((t) => (
-							<div key={t._id} className={`rounded-xl shadow-sm border p-5 hover:shadow-md transition bg-white/80 border-orange-200/50 backdrop-blur-sm ${t.completed ? 'opacity-60' : ''}`}>
+							<div key={t._id} className={`rounded-xl shadow-sm border p-5 hover:shadow-lg transition bg-white/90 dark:bg-orange-900/70 border-orange-200/50 dark:border-orange-700/50 backdrop-blur-sm ${t.completed ? 'opacity-60' : ''}`}>
 								<div className="flex items-start gap-4">
 									<button onClick={() => handleToggleCompleted(t)} aria-label={t.completed ? 'Mark as incomplete' : 'Mark as complete'} className={`mt-1 w-5 h-5 rounded border-2 flex items-center justify-center ${t.completed ? 'bg-orange-500 border-orange-500' : 'border-orange-300 hover:border-orange-400'}`}>
 										{t.completed && <Check className="w-4 h-4 text-white"/>}
 									</button>
 									<div className="flex-1">
-										<h3 className={`text-lg font-semibold mb-1 ${t.completed ? 'line-through text-gray-500' : 'text-gray-900'}`}>{t.title}</h3>
-										{t.description && <p className="text-sm mb-3 text-gray-600">{t.description}</p>}
+										<h3 className={`text-lg font-semibold mb-1 ${t.completed ? 'line-through text-gray-500 dark:text-amber-500/60' : 'text-gray-900 dark:text-amber-100'}`}>{t.title}</h3>
+										{t.description && <p className="text-sm mb-3 text-gray-600 dark:text-amber-300/80">{t.description}</p>}
 										<div className="flex flex-wrap items-center gap-3">
 											<PriorityBadge priority={t.priority} />
-											<span className="inline-flex items-center gap-1 text-xs text-gray-600"><Calendar className="w-3 h-3"/>{new Date(t.deadline).toLocaleDateString()}</span>
+											<span className="inline-flex items-center gap-1 text-xs text-gray-600 dark:text-amber-300/80"><Calendar className="w-3 h-3"/>{new Date(t.deadline).toLocaleDateString()}</span>
 											{Array.isArray(t.label_ids) && t.label_ids.map((lid) => {
 												const l = labels.find((x)=>x._id===lid);
 												if (!l) return null;
@@ -594,8 +594,8 @@ export default function DashboardPage() {
 				onDeleted={(id)=>setLabels((prev)=>prev.filter((l)=>l._id!==id))}
 			/>
 		)}
-		<footer className="mt-10 border-t border-orange-200/60">
-			<div className="max-w-6xl mx-auto px-2 sm:px-0 py-6 text-center text-xs text-gray-600">
+		<footer className="mt-10 border-t border-orange-200/60 dark:border-amber-900/40">
+			<div className="max-w-6xl mx-auto px-2 sm:px-0 py-6 text-center text-xs text-gray-600 dark:text-amber-300/80">
 				<span>🍑 Peachy Task — Make everything peachy.</span>
 			</div>
 		</footer>
