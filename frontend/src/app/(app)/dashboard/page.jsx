@@ -7,11 +7,11 @@ import Link from 'next/link';
 
 function PriorityBadge({ priority }) {
 	const map = {
-		high: 'bg-red-100 text-red-800 border-red-200',
-		medium: 'bg-amber-100 text-amber-800 border-amber-200',
-		low: 'bg-emerald-100 text-emerald-800 border-emerald-200',
+		high: 'bg-red-100 text-red-800 border-red-200 dark:bg-red-900/50 dark:text-red-300 dark:border-red-800',
+		medium: 'bg-amber-100 text-amber-800 border-amber-200 dark:bg-amber-900/50 dark:text-amber-300 dark:border-amber-800',
+		low: 'bg-emerald-100 text-emerald-800 border-emerald-200 dark:bg-emerald-900/50 dark:text-emerald-300 dark:border-emerald-800',
 	};
-	const cls = map[priority] || 'bg-gray-100 text-gray-700 border-gray-200';
+	const cls = map[priority] || 'bg-gray-100 text-gray-700 border-gray-200 dark:bg-stone-800/60 dark:text-amber-200 dark:border-stone-700';
 	return <span className={`text-xs px-2 py-0.5 rounded border ${cls}`}>{priority}</span>;
 }
 
@@ -429,8 +429,8 @@ export default function DashboardPage() {
 									</button>
 								);
 							})}
-							{labels.length > 0 && (
-								<button type="button" onClick={()=>setActiveLabelIds([])} className="mt-2 text-xs text-gray-600 hover:text-gray-800 dark:text-amber-300/80 dark:hover:text-amber-200 underline">Clear labels</button>
+							{labels.length > 0 && activeLabelIds.length > 0 && (
+								<button type="button" onClick={(e)=>{e.preventDefault(); e.stopPropagation(); setActiveLabelIds([]);}} className="mt-2 text-xs text-gray-600 hover:text-gray-800 dark:text-amber-300/80 dark:hover:text-amber-200 underline">Clear label filter</button>
 							)}
 						</div>
 					</div>
@@ -440,7 +440,7 @@ export default function DashboardPage() {
 			{/* Main content */}
 			<section className="lg:col-span-3">
 				<div className="mb-6">
-					<button onClick={() => setShowNew((v)=>!v)} className="w-full px-6 py-3 rounded-xl shadow-md hover:shadow-lg transition flex items-center justify-center gap-2 font-medium bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 dark:from-amber-800 dark:to-orange-900 dark:hover:from-amber-700 dark:hover:to-orange-800 text-white">
+					<button onClick={() => setShowNew((v)=>!v)} className="w-full px-6 py-3 rounded-xl shadow-md hover:shadow-lg transition flex items-center justify-center gap-2 font-medium bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 dark:from-amber-700 dark:to-orange-800 dark:hover:from-amber-600 dark:hover:to-orange-700 text-white">
 						<Plus className="w-5 h-5"/>
 						New Task
 					</button>
@@ -509,8 +509,8 @@ export default function DashboardPage() {
 						<p className="text-sm text-gray-600 dark:text-amber-200/90">Loading tasks…</p>
 					</div>
 				) : filteredTasks.length === 0 ? (
-					<div className="rounded-xl shadow-sm border p-12 text-center bg-white/80 dark:bg-orange-900/60 border-orange-200/50 dark:border-orange-800/40 backdrop-blur-sm">
-						<div className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 bg-orange-100">
+						<div className="rounded-xl shadow-sm border p-12 text-center bg-white/80 dark:bg-orange-900/60 border-orange-200/50 dark:border-orange-800/40 backdrop-blur-sm">
+							<div className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 bg-orange-100 dark:bg-amber-800/60">
 							<span className="text-4xl">🍑</span>
 						</div>
 						<h3 className="text-lg font-semibold mb-2 dark:text-amber-100">No tasks found</h3>
