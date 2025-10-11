@@ -571,8 +571,8 @@ export default function DashboardPage() {
 		)}
 		{/* Edit modal */}
 		{editingTask && (
-			<div className="fixed inset-0 z-50 flex items-center justify-center bg-amber-950 p-4">
-				<div className="w-full max-w-lg bg-white rounded-xl shadow-lg border border-orange-200/60 dark:bg-stone-900/80 dark:border-amber-900/40">
+			<div className="fixed inset-0 z-50 flex items-center justify-center bg-transparent p-4">
+				<div className="w-full max-w-lg bg-white rounded-xl shadow-lg border border-orange-200/60 dark:bg-amber-950 dark:border-amber-900/40">
 					<div className="flex items-center justify-between px-4 py-3 rounded-t-xl bg-gradient-to-r from-orange-500 to-amber-500 dark:from-amber-800 dark:to-orange-900 text-white">
 						<h2 className="text-lg font-semibold">Edit Task</h2>
 						<button onClick={() => setEditingTask(null)} className="text-white/90 hover:text-white" aria-label="Close"><X className="w-5 h-5"/></button>
