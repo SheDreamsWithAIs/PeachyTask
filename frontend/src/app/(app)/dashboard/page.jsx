@@ -281,6 +281,7 @@ export default function DashboardPage() {
 	const [tasks, setTasks] = useState([]);
 	const [labels, setLabels] = useState([]);
 	const [filter, setFilter] = useState('all');
+	const [activeLabelIds, setActiveLabelIds] = useState([]);
 	const [error, setError] = useState('');
 	const [fieldErrors, setFieldErrors] = useState({});
 	const [showNew, setShowNew] = useState(false);
@@ -307,10 +308,14 @@ export default function DashboardPage() {
 	}, []);
 
 	const filteredTasks = useMemo(() => {
-		if (filter === 'active') return tasks.filter((t) => !t.completed);
-		if (filter === 'completed') return tasks.filter((t) => t.completed);
-		return tasks;
-	}, [tasks, filter]);
+		let out = tasks;
+		if (filter === 'active') out = out.filter((t) => !t.completed);
+		if (filter === 'completed') out = out.filter((t) => t.completed);
+		if (activeLabelIds.length > 0) {
+			out = out.filter((t) => Array.isArray(t.label_ids) && t.label_ids.some((id)=>activeLabelIds.includes(id)));
+		}
+		return out;
+	}, [tasks, filter, activeLabelIds]);
 
 	const toggleLabel = (labelId) => {
 		setSelectedLabelIds((prev) => (prev.includes(labelId) ? prev.filter((id) => id !== labelId) : [...prev, labelId]));
@@ -412,12 +417,21 @@ export default function DashboardPage() {
 							</button>
 						</div>
 						<div className="space-y-2">
-							{labels.map((l) => (
-								<div key={l._id} className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-orange-50">
-									<div className="w-3 h-3 rounded-full" style={{ backgroundColor: l.color || '#f97316' }} />
-									<span className="text-sm text-gray-700">{l.name}</span>
-								</div>
-							))}
+							{labels.map((l) => {
+								const selected = activeLabelIds.includes(l._id);
+								return (
+									<button key={l._id} type="button" onClick={()=>setActiveLabelIds((prev)=>selected ? prev.filter((id)=>id!==l._id) : [...prev, l._id])} className={`w-full flex items-center justify-between px-3 py-2 rounded-lg transition ${selected ? 'bg-orange-100 text-orange-700 font-medium' : 'hover:bg-orange-50'}`}>
+										<span className="flex items-center gap-2">
+											<span className="w-3 h-3 rounded-full" style={{ backgroundColor: l.color || '#f97316' }} />
+											<span className="text-sm">{l.name}</span>
+										</span>
+										{selected && <Check className="w-4 h-4"/>}
+									</button>
+								);
+							})}
+							{labels.length > 0 && (
+								<button type="button" onClick={()=>setActiveLabelIds([])} className="mt-2 text-xs text-gray-600 hover:text-gray-800 underline">Clear labels</button>
+							)}
 						</div>
 					</div>
 				</div>
@@ -507,9 +521,9 @@ export default function DashboardPage() {
 						{filteredTasks.map((t) => (
 							<div key={t._id} className={`rounded-xl shadow-sm border p-5 hover:shadow-md transition bg-white/80 border-orange-200/50 backdrop-blur-sm ${t.completed ? 'opacity-60' : ''}`}>
 								<div className="flex items-start gap-4">
-									<div className={`mt-1 w-5 h-5 rounded border-2 flex items-center justify-center ${t.completed ? 'bg-orange-500 border-orange-500' : 'border-orange-300'}`}>
-										<button onClick={() => handleToggleCompleted(t)} aria-label="Toggle complete">{t.completed && <Check className="w-4 h-4 text-white"/>}</button>
-									</div>
+									<button onClick={() => handleToggleCompleted(t)} aria-label={t.completed ? 'Mark as incomplete' : 'Mark as complete'} className={`mt-1 w-5 h-5 rounded border-2 flex items-center justify-center ${t.completed ? 'bg-orange-500 border-orange-500' : 'border-orange-300 hover:border-orange-400'}`}>
+										{t.completed && <Check className="w-4 h-4 text-white"/>}
+									</button>
 									<div className="flex-1">
 										<h3 className={`text-lg font-semibold mb-1 ${t.completed ? 'line-through text-gray-500' : 'text-gray-900'}`}>{t.title}</h3>
 										{t.description && <p className="text-sm mb-3 text-gray-600">{t.description}</p>}
