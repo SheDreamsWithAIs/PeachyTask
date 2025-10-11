@@ -20,6 +20,7 @@ export default function DashboardPage() {
 	const [filter, setFilter] = useState('all');
 	const [error, setError] = useState('');
 	const [showNew, setShowNew] = useState(false);
+	const [loading, setLoading] = useState(true);
 
 	// New task form state
 	const [title, setTitle] = useState('');
@@ -30,8 +31,13 @@ export default function DashboardPage() {
 	const [submitting, setSubmitting] = useState(false);
 
 	useEffect(() => {
-		getJson('/tasks').then(setTasks).catch((e) => setError(e.message || 'Failed to load tasks'));
-		getJson('/labels').then(setLabels).catch(() => {});
+		setLoading(true);
+		Promise.all([
+			getJson('/tasks').then(setTasks),
+			getJson('/labels').then(setLabels).catch(() => {}),
+		])
+			.catch((e) => setError(e.message || 'Failed to load tasks'))
+			.finally(() => setLoading(false));
 	}, []);
 
 	const filteredTasks = useMemo(() => {
@@ -102,9 +108,11 @@ export default function DashboardPage() {
 
 			{/* Main content */}
 			<section className="lg:col-span-3">
-				<div className="mb-4 flex items-center justify-between">
-					<h1 className="text-2xl font-semibold">Dashboard</h1>
-					<button onClick={() => setShowNew((v)=>!v)} className="px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded flex items-center gap-2"><Plus className="w-4 h-4"/>New Task</button>
+				<div className="mb-6">
+					<button onClick={() => setShowNew((v)=>!v)} className="w-full px-6 py-3 rounded-xl shadow-md hover:shadow-lg transition flex items-center justify-center gap-2 font-medium bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white">
+						<Plus className="w-5 h-5"/>
+						New Task
+					</button>
 				</div>
 				{error && <div className="mb-3 text-sm text-red-700 bg-red-100 border border-red-200 rounded p-2">{error}</div>}
 
@@ -161,35 +169,49 @@ export default function DashboardPage() {
 					</form>
 				)}
 
-				{/* Task list */}
-				<div className="space-y-3">
-					{filteredTasks.map((t) => (
-						<div key={t._id} className={`rounded-xl shadow-sm border p-5 hover:shadow-md transition bg-white/80 border-orange-200/50 backdrop-blur-sm ${t.completed ? 'opacity-60' : ''}`}>
-							<div className="flex items-start gap-4">
-								<div className={`mt-1 w-5 h-5 rounded border-2 flex items-center justify-center ${t.completed ? 'bg-orange-500 border-orange-500' : 'border-orange-300'}`}>
-									{t.completed && <Check className="w-4 h-4 text-white"/>}
-								</div>
-								<div className="flex-1">
-									<h3 className={`text-lg font-semibold mb-1 ${t.completed ? 'line-through text-gray-500' : 'text-gray-900'}`}>{t.title}</h3>
-									{t.description && <p className="text-sm mb-3 text-gray-600">{t.description}</p>}
-									<div className="flex flex-wrap items-center gap-3">
-										<PriorityBadge priority={t.priority} />
-										<span className="inline-flex items-center gap-1 text-xs text-gray-600"><Calendar className="w-3 h-3"/>{new Date(t.deadline).toLocaleDateString()}</span>
-										{Array.isArray(t.label_ids) && t.label_ids.map((lid) => {
-											const l = labels.find((x)=>x._id===lid);
-											if (!l) return null;
-											return (
-												<span key={lid} className="inline-flex items-center gap-1 px-2 py-1 rounded-md text-xs font-medium" style={{ backgroundColor: (l.color||'#6b7280')+'20', color: l.color||'#6b7280' }}>
-													<Tag className="w-3 h-3"/>{l.name}
-												</span>
-											);
-										})}
+				{/* Task list or states */}
+				{loading ? (
+					<div className="rounded-xl shadow-sm border p-12 text-center bg-white/80 border-orange-200/50 backdrop-blur-sm">
+						<p className="text-sm text-gray-600">Loading tasks…</p>
+					</div>
+				) : filteredTasks.length === 0 ? (
+					<div className="rounded-xl shadow-sm border p-12 text-center bg-white/80 border-orange-200/50 backdrop-blur-sm">
+						<div className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 bg-orange-100">
+							<span className="text-4xl">🍑</span>
+						</div>
+						<h3 className="text-lg font-semibold mb-2">No tasks found</h3>
+						<p className="text-sm text-gray-600">{filter === 'completed' ? "You haven't completed any tasks yet. Keep going!" : 'Create a new task and make everything peachy! 🍑'}</p>
+					</div>
+				) : (
+					<div className="space-y-3">
+						{filteredTasks.map((t) => (
+							<div key={t._id} className={`rounded-xl shadow-sm border p-5 hover:shadow-md transition bg-white/80 border-orange-200/50 backdrop-blur-sm ${t.completed ? 'opacity-60' : ''}`}>
+								<div className="flex items-start gap-4">
+									<div className={`mt-1 w-5 h-5 rounded border-2 flex items-center justify-center ${t.completed ? 'bg-orange-500 border-orange-500' : 'border-orange-300'}`}>
+										{t.completed && <Check className="w-4 h-4 text-white"/>}
+									</div>
+									<div className="flex-1">
+										<h3 className={`text-lg font-semibold mb-1 ${t.completed ? 'line-through text-gray-500' : 'text-gray-900'}`}>{t.title}</h3>
+										{t.description && <p className="text-sm mb-3 text-gray-600">{t.description}</p>}
+										<div className="flex flex-wrap items-center gap-3">
+											<PriorityBadge priority={t.priority} />
+											<span className="inline-flex items-center gap-1 text-xs text-gray-600"><Calendar className="w-3 h-3"/>{new Date(t.deadline).toLocaleDateString()}</span>
+											{Array.isArray(t.label_ids) && t.label_ids.map((lid) => {
+												const l = labels.find((x)=>x._id===lid);
+												if (!l) return null;
+												return (
+													<span key={lid} className="inline-flex items-center gap-1 px-2 py-1 rounded-md text-xs font-medium" style={{ backgroundColor: (l.color||'#6b7280')+'20', color: l.color||'#6b7280' }}>
+														<Tag className="w-3 h-3"/>{l.name}
+													</span>
+												);
+											})}
+										</div>
 									</div>
 								</div>
 							</div>
-						</div>
-					))}
-				</div>
+						))}
+					</div>
+				)}
 			</section>
 		</div>
 	);

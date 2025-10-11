@@ -17,10 +17,10 @@ export default function AppLayout({ children }) {
 
   if (loading || !user) return null;
   return (
-    <>
+    <div className="min-h-screen bg-gradient-to-br from-orange-50 via-amber-50 to-peach-50">
       <Header />
-      <div className="max-w-5xl mx-auto p-4">{children}</div>
-    </>
+      <div className="max-w-6xl mx-auto p-4">{children}</div>
+    </div>
   );
 }
 
