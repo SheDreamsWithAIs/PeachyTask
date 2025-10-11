@@ -14,7 +14,10 @@ export async function postJson(path, body) {
     // ignore parse errors for empty responses
   }
   if (!res.ok) {
-    const message = (data && (data.detail || data.message)) || `Request failed (${res.status})`;
+    // FastAPI may return {detail: [{loc, msg, type}, ...]} for validation errors
+    const message = Array.isArray(data?.detail)
+      ? data.detail.map((d) => d.msg).join(', ')
+      : (data && (data.detail || data.message)) || `Request failed (${res.status})`;
     const err = new Error(message);
     err.status = res.status;
     err.data = data;
@@ -30,7 +33,9 @@ export async function getJson(path) {
   });
   const data = await res.json();
   if (!res.ok) {
-    const message = (data && (data.detail || data.message)) || `Request failed (${res.status})`;
+    const message = Array.isArray(data?.detail)
+      ? data.detail.map((d) => d.msg).join(', ')
+      : (data && (data.detail || data.message)) || `Request failed (${res.status})`;
     const err = new Error(message);
     err.status = res.status;
     err.data = data;

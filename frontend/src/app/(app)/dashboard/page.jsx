@@ -19,6 +19,7 @@ export default function DashboardPage() {
 	const [labels, setLabels] = useState([]);
 	const [filter, setFilter] = useState('all');
 	const [error, setError] = useState('');
+	const [fieldErrors, setFieldErrors] = useState({});
 	const [showNew, setShowNew] = useState(false);
 	const [loading, setLoading] = useState(true);
 
@@ -50,10 +51,25 @@ export default function DashboardPage() {
 		setSelectedLabelIds((prev) => (prev.includes(labelId) ? prev.filter((id) => id !== labelId) : [...prev, labelId]));
 	};
 
+	const validate = () => {
+		const errs = {};
+		if (!title.trim()) errs.title = 'Title is required';
+		if (!deadline) errs.deadline = 'Deadline is required';
+		if (!['low', 'medium', 'high'].includes(priority)) errs.priority = 'Invalid priority';
+		return errs;
+	};
+
 	const submitNewTask = async (e) => {
 		e.preventDefault();
 		setSubmitting(true);
 		setError('');
+		setFieldErrors({});
+		const errs = validate();
+		if (Object.keys(errs).length) {
+			setFieldErrors(errs);
+			setSubmitting(false);
+			return;
+		}
 		try {
 			const payload = {
 				title,
@@ -73,6 +89,15 @@ export default function DashboardPage() {
 			setSelectedLabelIds([]);
 			setShowNew(false);
 		} catch (err) {
+			// If FastAPI validation errors are present, try to map some to fields
+			if (Array.isArray(err.data?.detail)) {
+				const fe = {};
+				for (const d of err.data.detail) {
+					const last = Array.isArray(d.loc) ? d.loc[d.loc.length - 1] : d.loc;
+					if (typeof last === 'string') fe[last] = d.msg;
+				}
+				setFieldErrors(fe);
+			}
 			setError(err.message || 'Failed to create task');
 		} finally {
 			setSubmitting(false);
@@ -127,7 +152,8 @@ export default function DashboardPage() {
 						<div className="space-y-4">
 							<div>
 								<label className="block text-sm font-medium mb-1">Title <span className="text-red-500">*</span></label>
-								<input value={title} onChange={(e)=>setTitle(e.target.value)} required type="text" placeholder="Enter task title..." className="w-full px-4 py-2 rounded-lg border bg-white border-orange-200 focus:ring-2 focus:ring-orange-500 focus:border-transparent"/>
+								<input value={title} onChange={(e)=>setTitle(e.target.value)} type="text" placeholder="Enter task title..." className={`w-full px-4 py-2 rounded-lg border bg-white focus:ring-2 focus:ring-orange-500 focus:border-transparent ${fieldErrors.title ? 'border-red-300' : 'border-orange-200'}`}/>
+								{fieldErrors.title && <p className="mt-1 text-xs text-red-600">{fieldErrors.title}</p>}
 							</div>
 							<div>
 								<label className="block text-sm font-medium mb-1">Description</label>
@@ -136,15 +162,17 @@ export default function DashboardPage() {
 							<div className="grid grid-cols-2 gap-4">
 								<div>
 									<label className="block text-sm font-medium mb-1">Priority <span className="text-red-500">*</span></label>
-									<select value={priority} onChange={(e)=>setPriority(e.target.value)} className="w-full px-4 py-2 rounded-lg border bg-white border-orange-200 focus:ring-2 focus:ring-orange-500 focus:border-transparent">
+									<select value={priority} onChange={(e)=>setPriority(e.target.value)} className={`w-full px-4 py-2 rounded-lg border bg-white focus:ring-2 focus:ring-orange-500 focus:border-transparent ${fieldErrors.priority ? 'border-red-300' : 'border-orange-200'}`}>
 										<option value="low">Low</option>
 										<option value="medium">Medium</option>
 										<option value="high">High</option>
 									</select>
+									{fieldErrors.priority && <p className="mt-1 text-xs text-red-600">{fieldErrors.priority}</p>}
 								</div>
 								<div>
 									<label className="block text-sm font-medium mb-1">Deadline <span className="text-red-500">*</span></label>
-									<input value={deadline} onChange={(e)=>setDeadline(e.target.value)} required type="date" className="w-full px-4 py-2 rounded-lg border bg-white border-orange-200 focus:ring-2 focus:ring-orange-500 focus:border-transparent"/>
+									<input value={deadline} onChange={(e)=>setDeadline(e.target.value)} type="date" className={`w-full px-4 py-2 rounded-lg border bg-white focus:ring-2 focus:ring-orange-500 focus:border-transparent ${fieldErrors.deadline ? 'border-red-300' : 'border-orange-200'}`}/>
+									{fieldErrors.deadline && <p className="mt-1 text-xs text-red-600">{fieldErrors.deadline}</p>}
 								</div>
 							</div>
 							<div>
