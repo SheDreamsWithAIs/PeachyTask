@@ -2,23 +2,16 @@
 
 import Link from 'next/link';
 import { useAuth } from '@/components/AuthContext';
+import { useTheme } from '@/components/ThemeContext';
 import { LogOut, User, Moon, Sun, Home } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { usePathname } from 'next/navigation';
 
 export default function Header() {
   const { user, logout } = useAuth();
-  const [dark, setDark] = useState(false);
+  const { theme, toggleTheme } = useTheme();
+  const dark = theme === 'dark';
   const pathname = usePathname();
-
-  useEffect(() => {
-    const root = document.documentElement;
-    if (dark) {
-      root.classList.add('dark');
-    } else {
-      root.classList.remove('dark');
-    }
-  }, [dark]);
   return (
     <header className="w-full shadow-md border-b bg-gradient-to-r from-orange-500 via-amber-500 to-orange-500 border-orange-400/50 dark:from-amber-900 dark:via-orange-950 dark:to-amber-900 dark:border-amber-800/50">
       <div className="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
@@ -41,7 +34,7 @@ export default function Header() {
           >
             <Home className="w-4 h-4" />
           </Link>
-          <button onClick={() => setDark((v) => !v)} className="p-2 rounded-lg text-white hover:bg-orange-600/40" aria-label="Toggle theme" title={dark ? 'Switch to Light' : 'Switch to Dark'}>
+          <button onClick={toggleTheme} className="p-2 rounded-lg text-white hover:bg-orange-600/40" aria-label="Toggle theme" title={dark ? 'Switch to Light' : 'Switch to Dark'}>
             {dark ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
           </button>
           {user ? (

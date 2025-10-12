@@ -1,11 +1,12 @@
 'use client';
 
 import Link from 'next/link';
-import { useState } from 'react';
 import { Sparkles, Zap, Shield, Heart, Sun, Moon, Star, ArrowRight } from 'lucide-react';
+import { useTheme } from '@/components/ThemeContext';
 
 export default function Home() {
-  const [darkMode, setDarkMode] = useState(false);
+  const { theme, toggleTheme } = useTheme();
+  const darkMode = theme === 'dark';
 
   const features = [
     { icon: <Sparkles className="w-8 h-8" />, title: 'Magically Organized', desc: "Color-coded, label-tagged, priority-sorted glory." },
@@ -37,19 +38,18 @@ export default function Home() {
   );
 
   return (
-    <div className={darkMode ? 'dark' : ''}>
-      <div className={`min-h-screen ${darkMode ? 'bg-gradient-to-br from-stone-900 via-amber-950 to-stone-900' : 'bg-gradient-to-br from-orange-50 via-amber-50 to-peach-50'}`}>
+    <div className={`min-h-screen ${darkMode ? 'bg-gradient-to-br from-stone-900 via-amber-950 to-stone-900' : 'bg-gradient-to-br from-orange-50 via-amber-50 to-peach-50'}`}>
         {/* Nav */}
-        <nav className={`sticky top-0 z-50 backdrop-blur-lg border-b ${darkMode ? 'bg-stone-900/80 border-amber-900/30' : 'bg-white/80 border-orange-200/50'}`}>
+        <nav className={`sticky top-0 z-50 backdrop-blur-lg border-b bg-white/80 border-orange-200/50 dark:bg-stone-900/80 dark:border-amber-900/30`}>
           <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className={`w-10 h-10 rounded-xl flex items-center justify-center shadow-lg ${darkMode ? 'bg-gradient-to-br from-amber-800 to-orange-900' : ''}`} style={darkMode ? {} : { backgroundColor: '#fce4d2' }}>
+              <div className={`w-10 h-10 rounded-xl flex items-center justify-center shadow-lg bg-[#fce4d2] dark:bg-gradient-to-br dark:from-amber-800 dark:to-orange-900`}>
                 <span className="text-2xl">🍑</span>
               </div>
               <span className={`${darkMode ? 'bg-gradient-to-r from-orange-400 to-amber-400' : 'bg-gradient-to-r from-orange-600 to-amber-600'} bg-clip-text text-transparent text-xl font-bold`}>Peachy Task</span>
             </div>
             <div className="flex items-center gap-3">
-              <button onClick={() => setDarkMode(!darkMode)} className={`${darkMode ? 'bg-amber-900/50 text-amber-300 hover:bg-amber-900' : 'bg-orange-100 text-orange-600 hover:bg-orange-200'} p-2 rounded-lg`}>{darkMode ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}</button>
+              <button onClick={toggleTheme} className={`${darkMode ? 'bg-amber-900/50 text-amber-300 hover:bg-amber-900' : 'bg-orange-100 text-orange-600 hover:bg-orange-200'} p-2 rounded-lg`}>{darkMode ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}</button>
               <Link href="/login" className={`${darkMode ? 'text-amber-300 hover:bg-amber-900/30' : 'text-orange-700 hover:bg-orange-100'} px-4 py-2 rounded-lg font-medium`}>Sign In</Link>
               <Link href="/signup" className={`${darkMode ? 'bg-gradient-to-r from-amber-700 to-orange-800 hover:from-amber-600 hover:to-orange-700 text-amber-50' : 'bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white'} px-5 py-2 rounded-lg font-semibold shadow-md`}>Get Started</Link>
             </div>
@@ -60,7 +60,7 @@ export default function Home() {
         <div className="max-w-6xl mx-auto px-6 py-20">
           <div className="text-center mb-16">
             <div className="inline-block mb-6">
-              <div className={`w-32 h-32 rounded-3xl flex items-center justify-center shadow-2xl ${darkMode ? 'bg-gradient-to-br from-amber-800 to-orange-900' : ''}`} style={darkMode ? {} : { backgroundColor: '#fce4d2' }}>
+              <div className={`w-32 h-32 rounded-3xl flex items-center justify-center shadow-2xl bg-[#fce4d2] dark:bg-gradient-to-br dark:from-amber-800 dark:to-orange-900`}>
                 <span className="text-8xl animate-bounce">🍑</span>
               </div>
             </div>
@@ -146,7 +146,6 @@ export default function Home() {
             <p className={`${darkMode ? 'text-amber-400/40' : 'text-gray-400'} text-xs italic`}>© 2025 Peachy Task. All rights reserved. Dragons included free of charge. 🐉</p>
           </div>
         </footer>
-      </div>
     </div>
   );
 }
