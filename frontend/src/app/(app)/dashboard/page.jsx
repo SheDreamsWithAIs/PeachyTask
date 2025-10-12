@@ -156,9 +156,23 @@ function LabelsManagerModal({ labels: initialLabels, onClose, onCreated, onUpdat
 		}
 	};
 
-	const onSaveEdit = async (payload) => {
+	const onSaveEdit = async () => {
 		if (!editing) return;
 		try {
+			const original = labels.find((l) => l._id === editing._id) || {};
+			const payload = {};
+			const currentName = (editing.name || '').trim();
+			const originalName = (original.name || '').trim();
+			if (currentName.toLowerCase() !== originalName.toLowerCase()) {
+				payload.name = currentName;
+			}
+			if ((editing.color || '') !== (original.color || '')) {
+				payload.color = editing.color;
+			}
+			if (Object.keys(payload).length === 0) {
+				setEditing(null);
+				return;
+			}
 			const { patchJson } = await import('@/lib/api');
 			const updated = await patchJson(`/labels/${editing._id}`, payload);
 			onUpdated?.(updated);
@@ -237,14 +251,14 @@ function LabelsManagerModal({ labels: initialLabels, onClose, onCreated, onUpdat
 								<h2 className="text-lg font-semibold">Edit Label</h2>
 								<button onClick={()=>setEditing(null)} className="text-white/90 hover:text-white" aria-label="Close"><X className="w-5 h-5"/></button>
 							</div>
-							<form onSubmit={(e)=>{e.preventDefault(); onSaveEdit({ name: editing.name, color: editing.color });}} className="p-4 space-y-4">
+							<form onSubmit={(e)=>{e.preventDefault(); onSaveEdit();}} className="p-4 space-y-4">
 								<div>
-									<label className="block text-sm font-medium mb-1">Label name</label>
-									<input value={editing.name} onChange={(e)=>setEditing((prev)=>({...prev, name: e.target.value}))} className="w-full px-4 py-2 rounded-lg border bg-white border-orange-200 focus:ring-2 focus:ring-orange-500 focus:border-transparent"/>
+									<label className="block text-sm font-medium mb-1 dark:text-amber-100">Label name</label>
+									<input value={editing.name} onChange={(e)=>setEditing((prev)=>({...prev, name: e.target.value}))} className="w-full px-4 py-2 rounded-lg border bg-white border-orange-200 focus:ring-2 focus:ring-orange-500 focus:border-transparent dark:bg-stone-900/60 dark:text-amber-100 dark:border-amber-900/40"/>
 								</div>
 								<div>
-									<label className="block text-sm font-medium mb-1">Color</label>
-									<input type="color" value={editing.color || '#f97316'} onChange={(e)=>setEditing((prev)=>({...prev, color: e.target.value}))} className="h-10 w-16 border rounded"/>
+									<label className="block text-sm font-medium mb-1 dark:text-amber-100">Color</label>
+									<input type="color" value={editing.color || '#f97316'} onChange={(e)=>setEditing((prev)=>({...prev, color: e.target.value}))} className="h-10 w-16 border rounded bg-white border-orange-200 dark:bg-stone-900/60 dark:border-amber-900/40"/>
 								</div>
 								<div className="flex justify-end gap-2 pt-2">
 									<button type="button" onClick={()=>setEditing(null)} className="px-4 py-2 border rounded">Cancel</button>

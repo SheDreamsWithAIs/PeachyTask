@@ -22,16 +22,21 @@ export default function RootLayout({ children }) {
             var root = document.documentElement;
             if (isDark) {
               root.classList.add('dark');
+              root.style.backgroundColor = '#0c0a09';
             } else {
               root.classList.remove('dark');
+              root.style.backgroundColor = '#ffffff';
             }
             // reveal body with fade after first paint
             try{
               var reveal=function(){ try{ document.body.classList.remove('theme-preload'); }catch(e){} };
               if (window.requestAnimationFrame) {
-                requestAnimationFrame(function(){ requestAnimationFrame(reveal); });
+                requestAnimationFrame(function(){ requestAnimationFrame(function(){
+                  reveal();
+                  try{ root.style.backgroundColor = ''; }catch(e){}
+                }); });
               } else {
-                setTimeout(reveal, 0);
+                setTimeout(function(){ reveal(); try{ root.style.backgroundColor=''; }catch(e){} }, 0);
               }
             }catch(e){}
           } catch (e) {}
