@@ -17,7 +17,7 @@ export default function Home() {
   const features = [
     { icon: <Sparkles className="w-8 h-8" />, title: 'Magically Organized', desc: "Color-coded, label-tagged, priority-sorted glory." },
     { icon: <Zap className="w-8 h-8" />, title: 'Lightning Fast', desc: 'Create tasks faster than you can say “write that down”.' },
-    { icon: <Shield className="w-8 h-8" />, title: 'Fort Knox Secure', desc: 'Protected with HTTPOnly cookies and JWTs.' },
+    { icon: <Shield className="w-8 h-8" />, title: 'Secret Diary Level Secure', desc: 'Protected with HTTPOnly cookies and JWTs.' },
     { icon: <Heart className="w-8 h-8" />, title: 'Delightful', desc: 'Clean, friendly UI that makes getting things done feel good.' },
   ];
 
@@ -76,11 +76,11 @@ export default function Home() {
               Everything&apos;s Peachy<br />When You Get Things Done
             </h1>
             <p className={`text-xl mb-8 max-w-2xl mx-auto text-gray-700 dark:text-amber-200/80`}>
-              The world&apos;s most delightfully absurd task management app. Used by literally DOZENS of people worldwide. Probably.
+              The world&apos;s most delightfully absurd task management app. Used by DOZENS of people worldwide. Maybe...
             </p>
             <div className="flex gap-4 justify-center">
               <Link href="/signup" className={`px-8 py-4 rounded-xl font-bold text-lg shadow-xl inline-flex items-center gap-2 bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white dark:from-amber-700 dark:to-orange-800 dark:hover:from-amber-600 dark:hover:to-orange-700 dark:text-amber-50`}>
-                Start Being Productive (Maybe)
+                Start Being Productive (ish)
                 <ArrowRight className="w-5 h-5" />
               </Link>
             </div>
@@ -106,7 +106,7 @@ export default function Home() {
           {/* Features */}
           <div className="mb-20">
             <h2 className={`text-4xl font-bold text-center mb-12 text-gray-900 dark:text-amber-200`}>Features That&apos;ll Blow Your Mind*</h2>
-            <p className={`text-center text-sm italic mb-8 text-gray-500 dark:text-amber-400/60`}>*Mind-blowing not medically verified</p>
+            <p className={`text-center text-sm italic mb-8 text-gray-500 dark:text-amber-400/60`}>*Not intended to be literally mind-blowing. Please seek medical attention in the event of a blown mind.</p>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {features.map((f, idx) => (
                 <div key={idx} className={`p-6 rounded-2xl transition hover:scale-105 border bg-white/80 border-orange-200/50 hover:border-orange-400 hover:shadow-lg dark:bg-stone-900/80 dark:border-amber-900/30 dark:hover:border-amber-700`}>
@@ -121,13 +121,13 @@ export default function Home() {
           {/* Testimonials */}
           <div className="mb-20">
             <h2 className={`text-4xl font-bold text-center mb-4 text-gray-900 dark:text-amber-200`}>What Our Users Are Saying</h2>
-            <p className={`text-center text-sm italic mb-12 text-gray-500 dark:text-amber-400/60`}>(These are 100% real testimonials from 100% real people. Probably.)</p>
+            <p className={`text-center text-sm italic mb-12 text-gray-500 dark:text-amber-400/60`}>(These are 100% real testimonials from 100% fake people.)</p>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {[
-                { name: 'Dr. Productivity McTaskface', title: 'Professional List Maker', quote: "I used to forget everything. Now I breathe EXCLUSIVELY on schedule.", rating: 5, avatar: '🧑‍⚕️' },
-                { name: "Barbara 'The Organizer' Jenkins", title: 'Chaos Elimination Specialist', quote: 'Before Peachy Task, my life was a mess. Now? Enlightenment.', rating: 5, avatar: '👩‍💼' },
-                { name: 'Kevin the Procrastinator', title: 'Former Professional Delayer', quote: 'I ALREADY DID IT. Cured in 3.7 seconds.', rating: 5, avatar: '🧔' },
-                { name: 'Princess Sparkle Whiskers III', title: 'Cat (Yes, Really)', quote: 'Meow meow meow. 5 stars.', rating: 5, avatar: '🐱' },
+                { name: 'Dr. Productivity McTaskface', title: 'Professional List Maker', quote: "I used to forget everything. My keys, my dog's name, even breathing sometimes. But since using Peachy Task, I've remembered 847 things! Now I breathe EXCLUSIVELY on schedule.", rating: 5, avatar: '🧑‍⚕️' },
+                { name: "Barbara 'The Organizer' Jenkins", title: 'Chaos Elimination Specialist', quote: "Before Peachy Task, my life was a mess. I had 47 different to-do apps and still forgot to feed my houseplants. Now? My plants are thriving, my tasks are color-coded, and I've achieved enlightenment. 10/10 would organize again.", rating: 5, avatar: '👩‍💼' },
+                { name: 'Kevin the Procrastinator', title: 'Former Professional Delayer', quote: "I'll write this testimonial later... Just kidding! I ALREADY DID IT because Peachy Task cured my procrastination in 3.7 seconds. I've accomplished more in the last week than in my entire life. I've even started doing tasks that don't exist yet.", rating: 5, avatar: '🧔' },
+                { name: 'Princess Sparkle Whiskers III', title: 'Professional Cat (Yes, Really)', quote: "Meow meow meow meow. Meow meow MEOW meow meow. Peachy Task meow meow. *knocks water glass off table* 5 stars.", rating: 5, avatar: '🐱' },
               ].map((t, i) => (
                 <Testi key={i} {...t} />
               ))}
