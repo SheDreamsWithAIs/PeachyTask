@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { postJson } from '@/lib/api';
 import Link from 'next/link';
 import { Mail, Lock, Moon, Sun } from 'lucide-react';
@@ -13,6 +13,11 @@ export default function SignupPage() {
   const [loading, setLoading] = useState(false);
   const { theme, toggleTheme } = useTheme();
   const dark = theme === 'dark';
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const onSubmit = async (e) => {
     e.preventDefault();
@@ -30,8 +35,8 @@ export default function SignupPage() {
 
   return (
     <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-orange-50 via-amber-50 to-peach-50 dark:from-stone-900 dark:via-amber-950 dark:to-stone-900">
-      <button onClick={toggleTheme} className={`fixed top-6 right-6 p-3 rounded-lg transition shadow-lg ${dark ? 'bg-amber-900/50 text-amber-200 hover:bg-amber-900' : 'bg-white text-orange-600 hover:bg-orange-50'}`} aria-label="Toggle theme">
-        {dark ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+      <button onClick={toggleTheme} className="fixed top-6 right-6 p-3 rounded-lg transition shadow-lg bg-white text-orange-600 hover:bg-orange-50 dark:bg-amber-900/50 dark:text-amber-200 dark:hover:bg-amber-900" aria-label="Toggle theme" title={mounted ? (dark ? 'Switch to Light' : 'Switch to Dark') : 'Toggle theme'}>
+        {mounted ? (dark ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />) : <span className="w-5 h-5 inline-block" />}
       </button>
       <div className="w-full max-w-2xl mx-auto px-6 py-8">
         <div className="rounded-2xl shadow-2xl border-2 p-10 bg-white/90 border-orange-200/50 backdrop-blur-sm dark:bg-stone-900/90 dark:border-amber-900/50">

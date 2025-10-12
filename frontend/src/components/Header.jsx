@@ -12,6 +12,11 @@ export default function Header() {
   const { theme, toggleTheme } = useTheme();
   const dark = theme === 'dark';
   const pathname = usePathname();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
   return (
     <header className="w-full shadow-md border-b bg-gradient-to-r from-orange-500 via-amber-500 to-orange-500 border-orange-400/50 dark:from-amber-900 dark:via-orange-950 dark:to-amber-900 dark:border-amber-800/50">
       <div className="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
@@ -34,8 +39,8 @@ export default function Header() {
           >
             <Home className="w-4 h-4" />
           </Link>
-          <button onClick={toggleTheme} className="p-2 rounded-lg text-white hover:bg-orange-600/40" aria-label="Toggle theme" title={dark ? 'Switch to Light' : 'Switch to Dark'}>
-            {dark ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+          <button onClick={toggleTheme} className="p-2 rounded-lg text-white hover:bg-orange-600/40" aria-label="Toggle theme" title={mounted ? (dark ? 'Switch to Light' : 'Switch to Dark') : 'Toggle theme'}>
+            {mounted ? (dark ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />) : <span className="w-5 h-5 inline-block" />}
           </button>
           {user ? (
             <>
