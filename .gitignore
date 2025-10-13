@@ -17,3 +17,6 @@ Thumbs.db
 
 # AI Guidance Documentation
 /AI_docs
+
+# Node Files
+node_modules/
