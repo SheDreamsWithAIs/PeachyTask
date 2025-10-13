@@ -20,3 +20,6 @@ Thumbs.db
 
 # Node Files
 node_modules/
+
+# Next.js Module Files
+.next/
