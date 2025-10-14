@@ -25,8 +25,8 @@ export default function Header() {
             <span className="text-2xl">🍑</span>
           </div>
           <div className="leading-tight">
-            <div className="text-white font-bold">Peachy Task</div>
-            <div className="text-[11px] italic text-orange-50/90 dark:text-amber-200/80">Everything's peachy when you get things done.</div>
+            <div className="text-white font-bold">{pathname.startsWith('/showdown') ? 'Peachy task: Procrastination Showdown' : 'Peachy Task'}</div>
+            <div className="text-[11px] italic text-orange-50/90 dark:text-amber-200/80">{pathname.startsWith('/showdown') ? 'Turn "ugh" into "done" - one clever choice at a time!' : "Everything's peachy when you get things done."}</div>
           </div>
         </Link>
         <nav className="flex items-center gap-2 sm:gap-4">

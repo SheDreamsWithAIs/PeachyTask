@@ -453,6 +453,24 @@ export default function DashboardPage() {
 
 			{/* Main content */}
 			<section className="lg:col-span-3">
+				{/* Procrastination Showdown entry */}
+				<div className="mb-4">
+					<div className="rounded-xl shadow-sm border p-5 bg-white/80 dark:bg-orange-900/60 border-orange-200/50 dark:border-orange-800/40 backdrop-blur-sm">
+						<div className="flex items-center justify-between gap-3 flex-wrap">
+							<div>
+								<h3 className="text-lg font-semibold mb-1 dark:text-amber-100">Procrastination Showdown</h3>
+								<p className="text-sm text-gray-600 dark:text-amber-300/80">Battle two tasks head-to-head and pick one to crush.</p>
+							</div>
+							{tasks.filter((t)=>!t.completed).length >= 4 ? (
+								<Link href="/showdown/vs" className="px-4 py-2 rounded-lg font-medium transition bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white">Start Showdown</Link>
+							) : (
+								<div className="text-sm px-3 py-2 rounded-lg border border-orange-300 text-gray-700 dark:text-amber-200 dark:border-amber-900/40">
+									Need at least 4 active tasks to start. Create more tasks to begin.
+								</div>
+							)}
+						</div>
+					</div>
+				</div>
 				<div className="mb-6">
 					<button onClick={() => setShowNew((v)=>!v)} className="w-full px-6 py-3 rounded-xl shadow-md hover:shadow-lg transition flex items-center justify-center gap-2 font-medium bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 dark:from-amber-700 dark:to-orange-800 dark:hover:from-amber-600 dark:hover:to-orange-700 text-white">
 						<Plus className="w-5 h-5"/>
