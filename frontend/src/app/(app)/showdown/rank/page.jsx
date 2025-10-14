@@ -33,11 +33,26 @@ export default function ShowdownRankPage() {
   const pickPair = useCallback(() => {
     const pool = tasks.slice();
     if (pool.length < 2) return [];
+    // Compute effective rank = persisted + in-session delta
+    const eff = (t) => (Number(t.dislike_rank || 0) + Number(deltas[t._id] || 0));
+    const unranked = pool.filter((t) => eff(t) <= 0);
+    const ranked = pool.filter((t) => eff(t) > 0);
+
+    // Prefer pairing: one unranked with one ranked (to quickly place new tasks)
+    if (unranked.length > 0) {
+      const a = unranked[Math.floor(Math.random() * unranked.length)];
+      const bPool = ranked.length > 0 ? ranked : unranked.filter((t) => t._id !== a._id);
+      if (bPool.length === 0) return [a, pool.find((t) => t._id !== a._id)];
+      const b = bPool[Math.floor(Math.random() * bPool.length)];
+      return [a, b];
+    }
+
+    // All ranked: allow cyclic refinement on already-ranked tasks
     const i = Math.floor(Math.random() * pool.length);
     let j = Math.floor(Math.random() * pool.length);
     if (j === i) j = (j + 1) % pool.length;
     return [pool[i], pool[j]];
-  }, [tasks]);
+  }, [tasks, deltas]);
 
   useEffect(() => {
     if (!loading) setPair(pickPair());

@@ -54,8 +54,29 @@ export default function ShowdownVSPage() {
     setPairLoading(true);
     setSelectedId(null);
     try {
-      const p = await getJson('/showdown/pair');
-      setPair(Array.isArray(p) ? p : []);
+      // Pass last pair to avoid immediate repeats
+      let url = '/showdown/pair';
+      try {
+        if (typeof window !== 'undefined') {
+          const storedPair = window.sessionStorage.getItem('showdown_pair');
+          if (storedPair) {
+            const parsed = JSON.parse(storedPair);
+            if (Array.isArray(parsed) && parsed.length >= 2) {
+              const a = parsed[0]?._id; const b = parsed[1]?._id;
+              const avoidHigh = selectedId || a; // nudge backend to rotate dreaded task too
+              if (a && b) url = `/showdown/pair?last_a=${encodeURIComponent(a)}&last_b=${encodeURIComponent(b)}&avoid_high=${encodeURIComponent(avoidHigh)}`;
+            }
+          }
+        }
+      } catch {}
+      const p = await getJson(url);
+      const nextPair = Array.isArray(p) ? p : [];
+      setPair(nextPair);
+      try {
+        if (typeof window !== 'undefined' && nextPair.length >= 2) {
+          window.sessionStorage.setItem('showdown_pair', JSON.stringify(nextPair));
+        }
+      } catch {}
     } catch (e) {
       setError(e.message || 'Failed to fetch showdown pair');
       setPair([]);
@@ -282,7 +303,14 @@ export default function ShowdownVSPage() {
 
               {/* Action Buttons */}
               <div className="flex gap-4 justify-center mb-4 flex-wrap">
-                <button onClick={() => fetchPair()} className={`px-6 py-3 rounded-xl font-medium transition border-2 flex items-center gap-2 ${darkMode ? 'border-amber-700 text-amber-300 hover:bg-amber-900/30' : 'border-orange-300 text-orange-700 hover:bg-orange-50'}`}><RotateCcw className="w-5 h-5"/>Pick New Showdown</button>
+                <button onClick={() => {
+                  if (timerSeconds > 0 && selectedId) {
+                    setPendingSelectId(null);
+                    setShowSwitchModal(true);
+                  } else {
+                    fetchPair();
+                  }
+                }} className={`px-6 py-3 rounded-xl font-medium transition border-2 flex items-center gap-2 ${darkMode ? 'border-amber-700 text-amber-300 hover:bg-amber-900/30' : 'border-orange-300 text-orange-700 hover:bg-orange-50'}`}><RotateCcw className="w-5 h-5"/>Pick New Showdown</button>
                 <Link href="/showdown/rank" className={`px-6 py-3 rounded-xl font-medium transition border-2 flex items-center gap-2 ${darkMode ? 'border-amber-700 text-amber-300 hover:bg-amber-900/30' : 'border-orange-300 text-orange-700 hover:bg-orange-50'}`}><ArrowDownUp className="w-5 h-5"/>Return to Ranking</Link>
                 <Link href="/dashboard" className={`px-6 py-3 rounded-xl font-medium transition border-2 flex items-center gap-2 ${darkMode ? 'border-amber-700 text-amber-300 hover:bg-amber-900/30' : 'border-orange-300 text-orange-700 hover:bg-orange-50'}`}><Home className="w-5 h-5"/>Return to Dashboard</Link>
               </div>
