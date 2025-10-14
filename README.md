@@ -2,6 +2,10 @@
 
 A full-stack task app built with FastAPI + MongoDB (backend) and Next.js + Tailwind (frontend). Auth uses JWT in HTTPOnly cookies.
 
+## Documentation
+- Showdown architecture: `docs/showdown-architecture.md`
+- Tasks dashboard: `docs/tasks-dashboard.md`
+
 ## Prerequisites
 - Python 3.11+ (Windows PowerShell examples below)
 - Node.js 18+ and npm
@@ -72,10 +76,11 @@ npm run test:e2e
 Included tests:
 - Auth flow: signup → logout → login → navigate to `/tasks`
 - Protected route: unauthenticated visit to `/tasks` redirects to `/login`
+- Showdown Phase 1: dashboard → VS → select → complete → results → dashboard
+- Showdown Phase 2: ranking → VS pairing via endpoint → timer Done persistence → results → undo resume
 
 ## Branching
-- `backend` branch: backend work (auth, tasks, labels)
-- `frontend` branch: frontend work (auth pages, protected routes, tasks UI)
+- `procrastination-showdown` branch: active feature work (Phases 1–3)
 
 Create PRs from branches when ready.
 
@@ -83,3 +88,4 @@ Create PRs from branches when ready.
 - PowerShell env vars: use `$env:NAME = 'value'` in the same shell session.
 - If Node/Next build complains about layout, ensure files live in `frontend/src/app`.
 - Deprecation warnings about FastAPI `on_event` are harmless; can be switched to lifespan later.
+- Cookies/auth: ensure FE and API use the same host (both `localhost` or both `127.0.0.1`).

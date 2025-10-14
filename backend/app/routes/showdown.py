@@ -4,9 +4,11 @@ from bson import ObjectId
 from fastapi import APIRouter, HTTPException, Request, status
 import random
 import math
+from datetime import datetime, timezone
 
 from app.utils.database import get_database_or_none
 from app.utils.auth import decode_access_token
+from app.models.user import UserModel
 
 
 router = APIRouter()
@@ -134,8 +136,78 @@ async def showdown_complete(payload: Dict[str, Any], request: Request) -> Dict[s
         raise HTTPException(status_code=404, detail="Task not found")
     if str(current.get("user_id")) != user_id:
         raise HTTPException(status_code=403, detail="Forbidden")
-    await coll.update_one({"_id": oid}, {"$set": {"completed": True, "completed_via_showdown": True, "showdown_timer_seconds": seconds}})
+    now = datetime.now(timezone.utc)
+    await coll.update_one(
+        {"_id": oid},
+        {"$set": {
+            "completed": True,
+            "completed_via_showdown": True,
+            "showdown_timer_seconds": seconds,
+            "updated_at": now,
+        }}
+    )
+    # Increment user "peaches peached" with a fun random amount
+    try:
+        users = UserModel(db)
+        udoc = await users.get_by_id_str(user_id)
+        if udoc:
+            inc = random.randint(3, 9)
+            await db[users.collection_name].update_one({"_id": udoc["_id"]}, {"$inc": {"peaches_peached_total": inc}})
+    except Exception:
+        pass
     updated = await coll.find_one({"_id": oid})
     return _serialize_task(updated)
+
+
+@router.get("/showdown/stats")
+async def showdown_stats(request: Request) -> Dict[str, Any]:
+    db = get_database_or_none()
+    if db is None:
+        raise HTTPException(status_code=500, detail="Database not initialized")
+    user_id = _get_user_id_from_cookie(request)
+    coll = db["tasks"]
+    cursor = coll.find({
+        "user_id": ObjectId(user_id),
+        "completed": True,
+        "completed_via_showdown": True,
+    })
+    total_completed = 0
+    total_time_seconds = 0
+    last_dt: Optional[datetime] = None
+    day_buckets: Set[str] = set()
+    async for doc in cursor:
+        total_completed += 1
+        try:
+            total_time_seconds += int(doc.get("showdown_timer_seconds") or 0)
+        except Exception:
+            pass
+        dt: Optional[datetime] = doc.get("updated_at") or None
+        if isinstance(dt, datetime):
+            if last_dt is None or dt > last_dt:
+                last_dt = dt
+            day_buckets.add((dt.astimezone(timezone.utc)).date().isoformat())
+    # streak: consecutive days up to today (UTC) with at least one completion
+    streak_days = 0
+    today = datetime.now(timezone.utc).date()
+    d = today
+    while d.isoformat() in day_buckets:
+        streak_days += 1
+        d = d.fromordinal(d.toordinal() - 1)
+    # Read user's fun counter
+    peaches_total = 0
+    try:
+        users = UserModel(db)
+        udoc = await users.get_by_id_str(user_id)
+        if udoc:
+            peaches_total = int(udoc.get("peaches_peached_total") or 0)
+    except Exception:
+        pass
+    return {
+        "total_completed": total_completed,
+        "total_time_seconds": total_time_seconds,
+        "streak_days": streak_days,
+        "peaches_peached_total": peaches_total,
+        "last_showdown_date": last_dt.isoformat() if last_dt else None,
+    }
 
 

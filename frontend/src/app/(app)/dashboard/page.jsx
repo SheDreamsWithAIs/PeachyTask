@@ -462,7 +462,7 @@ export default function DashboardPage() {
 								<p className="text-sm text-gray-600 dark:text-amber-300/80">Battle two tasks head-to-head and pick one to crush.</p>
 							</div>
 							{tasks.filter((t)=>!t.completed).length >= 4 ? (
-								<Link href="/showdown/vs" className="px-4 py-2 rounded-lg font-medium transition bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white">Start Showdown</Link>
+								<Link href="/showdown/landing" className="px-4 py-2 rounded-lg font-medium transition bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white">Procrastination Showdown</Link>
 							) : (
 								<div className="text-sm px-3 py-2 rounded-lg border border-orange-300 text-gray-700 dark:text-amber-200 dark:border-amber-900/40">
 									Need at least 4 active tasks to start. Create more tasks to begin.
