@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { CheckCircle, Home, Play, RotateCcw, ArrowDownUp } from 'lucide-react';
-import { getJson, patchJson } from '@/lib/api';
+import { getJson, patchJson, postJson } from '@/lib/api';
 import { useTheme } from '@/components/ThemeContext';
 
 function formatTimer(seconds) {
@@ -26,6 +26,10 @@ export default function ShowdownVSPage() {
   const [timerSeconds, setTimerSeconds] = useState(0);
   const [taskCompleted, setTaskCompleted] = useState(false);
   const [labels, setLabels] = useState([]);
+  const [pair, setPair] = useState([]);
+  const [pairLoading, setPairLoading] = useState(false);
+  const [showSwitchModal, setShowSwitchModal] = useState(false);
+  const [pendingSelectId, setPendingSelectId] = useState(null);
 
   // Load tasks
   useEffect(() => {
@@ -45,33 +49,93 @@ export default function ShowdownVSPage() {
     return () => clearInterval(id);
   }, [timerRunning]);
 
-  // Choose a pair (client-side) from incomplete tasks
-  const pair = useMemo(() => {
-    const pool = tasks.slice();
-    if (pool.length < 2) return [];
-    // pick two different random indices
-    const i = Math.floor(Math.random() * pool.length);
-    let j = Math.floor(Math.random() * pool.length);
-    if (j === i) j = (j + 1) % pool.length;
-    return [pool[i], pool[j]];
-  }, [tasks]);
+  // Fetch a showdown pair from backend
+  const fetchPair = async () => {
+    setPairLoading(true);
+    setSelectedId(null);
+    try {
+      const p = await getJson('/showdown/pair');
+      setPair(Array.isArray(p) ? p : []);
+    } catch (e) {
+      setError(e.message || 'Failed to fetch showdown pair');
+      setPair([]);
+    } finally {
+      setPairLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (loading) return;
+    // Resume from session storage if flagged
+    try {
+      const resume = typeof window !== 'undefined' ? window.sessionStorage.getItem('showdown_resume') === '1' : false;
+      if (resume) {
+        const storedPair = window.sessionStorage.getItem('showdown_pair');
+        const storedSelected = window.sessionStorage.getItem('showdown_selected_id');
+        if (storedPair) {
+          try {
+            const parsed = JSON.parse(storedPair);
+            if (Array.isArray(parsed) && parsed.length >= 2) {
+              setPair(parsed);
+            }
+          } catch {}
+        }
+        if (storedSelected) {
+          setSelectedId(storedSelected);
+          // fetch saved time and continue
+          getJson(`/tasks/${storedSelected}`).then((t) => {
+            const secs = Number(t?.showdown_timer_seconds || 0);
+            if (secs > 0) {
+              setTimerSeconds(secs);
+              setTimerRunning(true);
+            }
+          }).catch(() => {});
+        }
+        // clear resume flag so normal flow resumes next time
+        window.sessionStorage.removeItem('showdown_resume');
+        return;
+      }
+    } catch {}
+    fetchPair();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [loading]);
 
   const currentTask = useMemo(() => pair.find((t) => t._id === selectedId) || null, [pair, selectedId]);
 
   const handleComplete = async () => {
     if (!currentTask) return;
     try {
+      // Capture and stop timer before persisting
+      const finalSeconds = timerSeconds || 0;
+      setTimerRunning(false);
       setTaskCompleted(true);
-      const updated = await patchJson(`/tasks/${currentTask._id}`, { completed: true });
-      // optimistic: route to results with state via URL params
+      // Persist pair/selection to session for potential resume
+      try {
+        if (typeof window !== 'undefined') {
+          window.sessionStorage.setItem('showdown_pair', JSON.stringify(pair));
+          window.sessionStorage.setItem('showdown_selected_id', currentTask._id);
+        }
+      } catch {}
+      // Persist completion via showdown endpoint (with timer)
+      const updated = await postJson('/showdown/complete', { task_id: currentTask._id, timer_seconds: finalSeconds });
+      // route to results with state via URL params
       const q = new URLSearchParams();
       q.set('taskId', updated._id);
-      if (timerSeconds > 0) q.set('timer', String(timerSeconds));
+      if (finalSeconds > 0) q.set('timer', String(finalSeconds));
       if (typeof window !== 'undefined') window.location.href = `/showdown/results?${q.toString()}`;
     } catch (e) {
       setError(e.message || 'Failed to complete task');
       setTaskCompleted(false);
     }
+  };
+
+  const attemptSelect = (newId) => {
+    if (selectedId && newId !== selectedId && (timerSeconds || 0) > 0) {
+      setPendingSelectId(newId);
+      setShowSwitchModal(true);
+      return;
+    }
+    setSelectedId(newId);
   };
 
   if (loading) {
@@ -87,10 +151,15 @@ export default function ShowdownVSPage() {
       <div className={`min-h-screen transition-colors overflow-x-hidden ${darkMode ? 'bg-gradient-to-br from-stone-900 via-amber-950 to-stone-900' : 'bg-gradient-to-br from-orange-50 via-amber-50 to-peach-50'}`}>
         <div className="max-w-6xl mx-auto px-4 py-4">
           {/* Instructions or CTA when insufficient tasks */}
-          {pair.length < 2 ? (
+          {tasks.length < 4 ? (
             <div className={`mb-3 p-3 rounded-xl border text-center ${darkMode ? 'bg-amber-900/20 border-amber-700/50' : 'bg-orange-50 border-orange-200'}`}>
-              <h3 className={`font-bold text-lg mb-1 ${darkMode ? 'text-amber-200' : 'text-gray-900'}`}>You need at least 2 active tasks</h3>
-              <p className={`${darkMode ? 'text-amber-300/70' : 'text-gray-600'} text-sm`}>Add more tasks on the dashboard to start a showdown.</p>
+              <h3 className={`font-bold text-lg mb-2 ${darkMode ? 'text-amber-200' : 'text-gray-900'}`}>You need at least 4 active tasks</h3>
+              <p className={`${darkMode ? 'text-amber-300/70' : 'text-gray-600'} text-sm mb-3`}>Add more tasks on the dashboard to start a showdown.</p>
+              <Link href="/dashboard" className={`${darkMode ? 'border-amber-700 text-amber-300 hover:bg-amber-900/30' : 'border-orange-300 text-orange-700 hover:bg-orange-50'} inline-flex items-center gap-2 px-4 py-2 rounded-lg border-2 font-medium`}>Return to Dashboard</Link>
+            </div>
+          ) : pairLoading ? (
+            <div className={`mb-3 p-3 rounded-xl border text-center ${darkMode ? 'bg-amber-900/20 border-amber-700/50' : 'bg-orange-50 border-orange-200'}`}>
+              <p className={`${darkMode ? 'text-amber-300/70' : 'text-gray-600'} text-sm`}>Picking your showdown pair…</p>
             </div>
           ) : (
             <>
@@ -121,7 +190,7 @@ export default function ShowdownVSPage() {
                       ? (left ? 'bg-gradient-to-br from-amber-600 to-orange-900' : 'bg-gradient-to-br from-red-900 to-orange-900')
                       : (left ? 'bg-gradient-to-br from-orange-400 to-amber-600' : 'bg-gradient-to-br from-red-400 to-orange-400');
                     return (
-                      <button key={t._id} onClick={() => setSelectedId(t._id)} className={`text-left p-6 transition-all h-full flex flex-col relative overflow-hidden ${isSelected ? bgSelected : bg} ${ring}`} style={{ borderRadius: left ? '24px 0 0 24px' : '0 24px 24px 0' }}>
+                      <button key={t._id} onClick={() => attemptSelect(t._id)} className={`text-left p-6 transition-all h-full flex flex-col relative overflow-hidden ${isSelected ? bgSelected : bg} ${ring}`} style={{ borderRadius: left ? '24px 0 0 24px' : '0 24px 24px 0' }}>
                         {/* Header row with priority and check aligned */}
                         <div className="flex items-start justify-between mb-6">
                           {/* Left slot: for right card, show check; for left card, show priority */}
@@ -165,7 +234,7 @@ export default function ShowdownVSPage() {
                         <div className="flex-1 flex flex-col justify-center -mt-6">
                           <h3 className="text-2xl font-black mb-2 text-white drop-shadow-lg" style={{ display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{t.title}</h3>
                           {t.description && (
-                            <p className="text-base mb-3 text-white/90" style={{ display: '-webkit-box', WebkitLineClamp: 10, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{t.description}</p>
+                            <p className="text-base mb-3 text-white/90" style={{ display: '-webkit-box', WebkitLineClamp: 6, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{t.description}</p>
                           )}
                           <div className="flex items-center gap-2 text-sm text-white/80">
                             <span>📅 Due: {new Date(t.deadline).toLocaleDateString()}</span>
@@ -213,7 +282,7 @@ export default function ShowdownVSPage() {
 
               {/* Action Buttons */}
               <div className="flex gap-4 justify-center mb-4 flex-wrap">
-                <button onClick={() => setSelectedId(null)} className={`px-6 py-3 rounded-xl font-medium transition border-2 flex items-center gap-2 ${darkMode ? 'border-amber-700 text-amber-300 hover:bg-amber-900/30' : 'border-orange-300 text-orange-700 hover:bg-orange-50'}`}><RotateCcw className="w-5 h-5"/>Pick New Showdown</button>
+                <button onClick={() => fetchPair()} className={`px-6 py-3 rounded-xl font-medium transition border-2 flex items-center gap-2 ${darkMode ? 'border-amber-700 text-amber-300 hover:bg-amber-900/30' : 'border-orange-300 text-orange-700 hover:bg-orange-50'}`}><RotateCcw className="w-5 h-5"/>Pick New Showdown</button>
                 <Link href="/showdown/rank" className={`px-6 py-3 rounded-xl font-medium transition border-2 flex items-center gap-2 ${darkMode ? 'border-amber-700 text-amber-300 hover:bg-amber-900/30' : 'border-orange-300 text-orange-700 hover:bg-orange-50'}`}><ArrowDownUp className="w-5 h-5"/>Return to Ranking</Link>
                 <Link href="/dashboard" className={`px-6 py-3 rounded-xl font-medium transition border-2 flex items-center gap-2 ${darkMode ? 'border-amber-700 text-amber-300 hover:bg-amber-900/30' : 'border-orange-300 text-orange-700 hover:bg-orange-50'}`}><Home className="w-5 h-5"/>Return to Dashboard</Link>
               </div>
@@ -275,6 +344,18 @@ export default function ShowdownVSPage() {
                 <div className="pt-4 border-t border-gray-200 dark:border-amber-900/30">
                   <button onClick={() => setShowTaskModal(false)} className={`${darkMode ? 'bg-gradient-to-r from-amber-700 to-orange-800 hover:from-amber-600 hover:to-orange-700 text-amber-50' : 'bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white'} w-full px-6 py-3 rounded-xl font-semibold transition shadow-md hover:shadow-lg`}>Close & Return to Showdown</button>
                 </div>
+              </div>
+            </div>
+          </div>
+        )}
+        {showSwitchModal && (
+          <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+            <div className={`${darkMode ? 'bg-stone-900/95 border-amber-600' : 'bg-white border-orange-400'} max-w-md w-full rounded-2xl shadow-2xl border-2 p-6`}>
+              <h2 className={`${darkMode ? 'text-amber-100' : 'text-gray-900'} text-xl font-bold mb-2`}>Switch selected task?</h2>
+              <p className={`${darkMode ? 'text-amber-300/80' : 'text-gray-700'} text-sm mb-4`}>Switching will clear your current timer. Do you want to proceed?</p>
+              <div className="flex justify-end gap-2">
+                <button onClick={() => { setShowSwitchModal(false); setPendingSelectId(null); }} className={`${darkMode ? 'border-amber-700 text-amber-300 hover:bg-amber-900/30' : 'border-orange-300 text-orange-700 hover:bg-orange-50'} px-4 py-2 rounded-lg border-2 font-medium`}>Cancel</button>
+                <button onClick={() => { setTimerRunning(false); setTimerSeconds(0); if (pendingSelectId) setSelectedId(pendingSelectId); setPendingSelectId(null); setShowSwitchModal(false); }} className={`${darkMode ? 'bg-gradient-to-r from-amber-700 to-orange-800 hover:from-amber-600 hover:to-orange-700 text-amber-50' : 'bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white'} px-4 py-2 rounded-lg font-semibold`}>Switch Task</button>
               </div>
             </div>
           </div>

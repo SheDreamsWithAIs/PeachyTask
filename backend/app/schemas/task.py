@@ -24,6 +24,10 @@ class TaskBase(BaseModel):
     deadline: datetime
     completed: bool = False
     label_ids: List[str] = Field(default_factory=list)
+    # Phase 2 fields
+    dislike_rank: int = 0
+    showdown_timer_seconds: Optional[int] = None
+    completed_via_showdown: bool = False
 
     @field_validator("title")
     @classmethod
@@ -38,6 +42,24 @@ class TaskBase(BaseModel):
         for lid in v:
             if not isinstance(lid, str) or not OBJECT_ID_REGEX.fullmatch(lid):
                 raise ValueError("label_ids must be 24-char hex ObjectId strings")
+        return v
+
+    @field_validator("dislike_rank")
+    @classmethod
+    def validate_dislike_rank(cls, v: int) -> int:
+        if v is None:
+            return 0
+        if not isinstance(v, int) or v < 0:
+            raise ValueError("dislike_rank must be a non-negative integer")
+        return v
+
+    @field_validator("showdown_timer_seconds")
+    @classmethod
+    def validate_timer(cls, v: Optional[int]) -> Optional[int]:
+        if v is None:
+            return v
+        if not isinstance(v, int) or v < 0:
+            raise ValueError("showdown_timer_seconds must be a non-negative integer")
         return v
 
     @field_validator("deadline", mode="before")
@@ -82,6 +104,9 @@ class TaskUpdate(BaseModel):
     deadline: Optional[datetime] = None
     completed: Optional[bool] = None
     label_ids: Optional[List[str]] = None
+    dislike_rank: Optional[int] = None
+    showdown_timer_seconds: Optional[int] = None
+    completed_via_showdown: Optional[bool] = None
 
     @field_validator("title")
     @classmethod
@@ -100,6 +125,24 @@ class TaskUpdate(BaseModel):
         for lid in v:
             if not isinstance(lid, str) or not OBJECT_ID_REGEX.fullmatch(lid):
                 raise ValueError("label_ids must be 24-char hex ObjectId strings")
+        return v
+
+    @field_validator("dislike_rank")
+    @classmethod
+    def validate_dislike_rank_optional(cls, v: Optional[int]) -> Optional[int]:
+        if v is None:
+            return v
+        if not isinstance(v, int) or v < 0:
+            raise ValueError("dislike_rank must be a non-negative integer")
+        return v
+
+    @field_validator("showdown_timer_seconds")
+    @classmethod
+    def validate_timer_optional(cls, v: Optional[int]) -> Optional[int]:
+        if v is None:
+            return v
+        if not isinstance(v, int) or v < 0:
+            raise ValueError("showdown_timer_seconds must be a non-negative integer")
         return v
 
     @field_validator("deadline", mode="before")

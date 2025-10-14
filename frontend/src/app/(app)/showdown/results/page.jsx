@@ -124,6 +124,17 @@ export default function ShowdownResultsPage() {
                 try {
                   setReverting(true);
                   await patchJson(`/tasks/${taskId}`, { completed: false });
+                  try {
+                    if (typeof window !== 'undefined') {
+                      window.sessionStorage.setItem('showdown_resume', '1');
+                      // keep previous pair and selection if present
+                      const pair = window.sessionStorage.getItem('showdown_pair');
+                      if (pair) {
+                        // keep as-is
+                      }
+                      window.sessionStorage.setItem('showdown_selected_id', taskId);
+                    }
+                  } catch {}
                   if (typeof window !== 'undefined') window.location.href = '/showdown/vs';
                 } catch (e) {
                   setError(e.message || 'Failed to revert completion');

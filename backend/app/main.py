@@ -6,6 +6,7 @@ from .utils.database import connect_to_mongo, close_mongo_connection
 from .routes import auth as auth_routes
 from .routes import tasks as task_routes
 from .routes import labels as label_routes
+from .routes import showdown as showdown_routes
 
 
 app = FastAPI(title="PeachyTask API")
@@ -43,6 +44,7 @@ async def on_startup() -> None:
     app.include_router(auth_routes.router, prefix="/auth", tags=["auth"])
     app.include_router(task_routes.router, tags=["tasks"])
     app.include_router(label_routes.router, tags=["labels"])
+    app.include_router(showdown_routes.router, tags=["showdown"])
 
 
 @app.on_event("shutdown")
