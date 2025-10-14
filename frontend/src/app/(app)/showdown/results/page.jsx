@@ -32,6 +32,9 @@ export default function ShowdownResultsPage() {
   const [error, setError] = useState('');
   const [reverting, setReverting] = useState(false);
   const [labels, setLabels] = useState([]);
+  const [showConfetti, setShowConfetti] = useState(false);
+  const [peachesInc, setPeachesInc] = useState(null);
+  const [completedTotal, setCompletedTotal] = useState(null);
 
   // Fetch the completed task title for display
   useEffect(() => {
@@ -54,12 +57,75 @@ export default function ShowdownResultsPage() {
     getJson('/labels').then(setLabels).catch(() => {});
   }, []);
 
+  // Confetti on mount (respect reduced motion)
+  useEffect(() => {
+    try {
+      const prefersReduce = typeof window !== 'undefined' && window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      if (!prefersReduce) {
+        setShowConfetti(true);
+        const t = setTimeout(() => setShowConfetti(false), 2500);
+        return () => clearTimeout(t);
+      }
+    } catch {}
+  }, []);
+
+  // Load completion meta (current peaches increment and completed total)
+  useEffect(() => {
+    try {
+      const raw = typeof window !== 'undefined' ? window.sessionStorage.getItem('showdown_complete_meta') : null;
+      if (raw) {
+        const meta = JSON.parse(raw);
+        if (meta && (!meta.taskId || meta.taskId === taskId)) {
+          if (typeof meta.peaches_increment === 'number') setPeachesInc(meta.peaches_increment);
+          if (typeof meta.total_completed === 'number') setCompletedTotal(meta.total_completed);
+          return;
+        }
+      }
+    } catch {}
+    // fallback to stats
+    getJson('/showdown/stats').then((s) => {
+      setCompletedTotal(Number(s?.total_completed || 0));
+    }).catch(() => {});
+  }, [taskId]);
+
   const completedTitle = title || (taskId ? `Task ${taskId}` : 'Task');
 
   return (
     <div className={darkMode ? 'dark' : ''}>
       <div className={`min-h-screen transition-colors ${darkMode ? 'bg-gradient-to-br from-stone-900 via-amber-950 to-stone-900' : 'bg-gradient-to-br from-orange-50 via-amber-50 to-peach-50'}`}>
         <div className="max-w-4xl mx-auto px-4 py-8">
+          {/* Confetti overlay */}
+          {showConfetti && (
+            <div className="fixed inset-0 z-40 pointer-events-none overflow-hidden">
+              {Array.from({ length: 80 }).map((_, i) => {
+                const left = Math.random() * 100;
+                const delay = Math.random() * 0.6;
+                const duration = 1.6 + Math.random() * 0.9;
+                const size = 6 + Math.random() * 6;
+                const colors = ['#f97316','#fb923c','#f59e0b','#facc15','#a3e635','#34d399','#60a5fa','#f472b6'];
+                const color = colors[i % colors.length];
+                return (
+                  <span key={i} className="confetti-piece" style={{ left: `${left}%`, animationDelay: `${delay}s`, animationDuration: `${duration}s`, width: `${size}px`, height: `${size * 0.5}px`, backgroundColor: color }} />
+                );
+              })}
+              <style jsx>{`
+                @keyframes confetti-fall {
+                  0% { transform: translateY(-10vh) rotate(0deg); opacity: 1; }
+                  100% { transform: translateY(110vh) rotate(540deg); opacity: 0.9; }
+                }
+                .confetti-piece {
+                  position: absolute;
+                  top: -10vh;
+                  border-radius: 2px;
+                  animation-name: confetti-fall;
+                  animation-timing-function: cubic-bezier(0.23, 1, 0.32, 1);
+                }
+                @media (prefers-reduced-motion: reduce) {
+                  .confetti-piece { animation: none; }
+                }
+              `}</style>
+            </div>
+          )}
           {/* Celebration Hero */}
           <div className={`${darkMode ? 'bg-gradient-to-br from-amber-900/30 to-orange-900/30 border-amber-600/50' : 'bg-gradient-to-br from-orange-100 to-amber-100 border-orange-300'} text-center mb-6 p-6 rounded-2xl border-2`}>
             <div className="flex items-center justify-center gap-4 mb-3">
@@ -73,7 +139,7 @@ export default function ShowdownResultsPage() {
           </div>
 
           {/* Stats Row */}
-          <div className={`${darkMode ? 'bg-stone-900/80 border-amber-900/30' : 'bg-white border-orange-200'} mb-6 p-5 rounded-xl border`}>
+          <div className={`${darkMode ? 'bg-stone-900/80 border-amber-900/30' : 'bg-white border-orange-200'} mb-6 p-5 rounded-xl border transition-all duration-300 hover:shadow-lg motion-reduce:transition-none`}>
             <div className="flex items-center justify-around flex-wrap gap-4">
               {timerUsed && (
                 <div className="flex items-center gap-3">
@@ -91,7 +157,7 @@ export default function ShowdownResultsPage() {
                   <Trophy className={`${darkMode ? 'text-amber-300' : 'text-orange-600'} w-5 h-5`} />
                 </div>
                 <div>
-                  <div className={`${darkMode ? 'bg-gradient-to-r from-orange-400 to-amber-400 bg-clip-text text-transparent' : 'text-orange-600'} text-xl font-black`}>—</div>
+                  <div className={`${darkMode ? 'bg-gradient-to-r from-orange-400 to-amber-400 bg-clip-text text-transparent' : 'text-orange-600'} text-xl font-black`}>{completedTotal !== null ? completedTotal : '—'}</div>
                   <p className={`${darkMode ? 'text-amber-300/70' : 'text-gray-600'} text-xs`}>Tasks Completed</p>
                 </div>
               </div>
@@ -100,7 +166,7 @@ export default function ShowdownResultsPage() {
                   <Heart className={`${darkMode ? 'text-amber-300' : 'text-orange-600'} w-5 h-5`} />
                 </div>
                 <div>
-                  <div className={`${darkMode ? 'bg-gradient-to-r from-orange-400 to-amber-400 bg-clip-text text-transparent' : 'text-orange-600'} text-xl font-black`}>—</div>
+                  <div className={`${darkMode ? 'bg-gradient-to-r from-orange-400 to-amber-400 bg-clip-text text-transparent' : 'text-orange-600'} text-xl font-black`}>{peachesInc !== null ? peachesInc : '—'}</div>
                   <p className={`${darkMode ? 'text-amber-300/70' : 'text-gray-600'} text-xs`}>Peaches Peached</p>
                 </div>
               </div>

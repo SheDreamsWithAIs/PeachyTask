@@ -30,6 +30,14 @@ export default function ShowdownVSPage() {
   const [pairLoading, setPairLoading] = useState(false);
   const [showSwitchModal, setShowSwitchModal] = useState(false);
   const [pendingSelectId, setPendingSelectId] = useState(null);
+  const [showRankGuard, setShowRankGuard] = useState(false);
+  const rankedCountDisplay = useMemo(() => {
+    try {
+      return tasks.filter((t) => !t.completed && Number(t.dislike_rank || 0) > 0).length;
+    } catch {
+      return 0;
+    }
+  }, [tasks]);
 
   // Load tasks
   useEffect(() => {
@@ -87,6 +95,15 @@ export default function ShowdownVSPage() {
 
   useEffect(() => {
     if (loading) return;
+    // Guard: require at least 4 ranked (dislike_rank > 0) among active tasks
+    try {
+      const rankedCount = tasks.filter((t) => !t.completed && Number(t.dislike_rank || 0) > 0).length;
+      const activeCount = tasks.filter((t) => !t.completed).length;
+      if (activeCount >= 4 && rankedCount < 4) {
+        setShowRankGuard(true);
+        return;
+      }
+    } catch {}
     // Resume from session storage if flagged
     try {
       const resume = typeof window !== 'undefined' ? window.sessionStorage.getItem('showdown_resume') === '1' : false;
@@ -139,6 +156,17 @@ export default function ShowdownVSPage() {
       } catch {}
       // Persist completion via showdown endpoint (with timer)
       const updated = await postJson('/showdown/complete', { task_id: currentTask._id, timer_seconds: finalSeconds });
+      try {
+        if (typeof window !== 'undefined') {
+          const meta = {
+            taskId: updated?._id || currentTask._id,
+            peaches_increment: typeof updated?.peaches_increment === 'number' ? updated.peaches_increment : null,
+            peaches_peached_total: typeof updated?.peaches_peached_total === 'number' ? updated.peaches_peached_total : null,
+            total_completed: typeof updated?.total_completed === 'number' ? updated.total_completed : null,
+          };
+          window.sessionStorage.setItem('showdown_complete_meta', JSON.stringify(meta));
+        }
+      } catch {}
       // route to results with state via URL params
       const q = new URLSearchParams();
       q.set('taskId', updated._id);
@@ -211,7 +239,7 @@ export default function ShowdownVSPage() {
                       ? (left ? 'bg-gradient-to-br from-amber-600 to-orange-900' : 'bg-gradient-to-br from-red-900 to-orange-900')
                       : (left ? 'bg-gradient-to-br from-orange-400 to-amber-600' : 'bg-gradient-to-br from-red-400 to-orange-400');
                     return (
-                      <button key={t._id} onClick={() => attemptSelect(t._id)} className={`text-left p-6 transition-all h-full flex flex-col relative overflow-hidden ${isSelected ? bgSelected : bg} ${ring}`} style={{ borderRadius: left ? '24px 0 0 24px' : '0 24px 24px 0' }}>
+                      <button key={t._id} onClick={() => attemptSelect(t._id)} className={`text-left p-6 transition-all duration-300 motion-reduce:transition-none h-full flex flex-col relative overflow-hidden ${isSelected ? bgSelected : bg} ${ring}`} style={{ borderRadius: left ? '24px 0 0 24px' : '0 24px 24px 0' }}>
                         {/* Header row with priority and check aligned */}
                         <div className="flex items-start justify-between mb-6">
                           {/* Left slot: for right card, show check; for left card, show priority */}
@@ -220,9 +248,9 @@ export default function ShowdownVSPage() {
                               isSelected ? (
                                 <button onClick={(e) => { e.stopPropagation(); handleComplete(); }} className="relative group cursor-pointer" title="Mark as Done" aria-label="Mark as Done">
                                   <div className="relative">
-                                    {!taskCompleted && (<div className="absolute inset-0 rounded-full bg-white/50 animate-ping pointer-events-none" style={{ animationDuration: '1s', animationTimingFunction: 'cubic-bezier(0, 0, 0.2, 1)' }} />)}
+                                {!taskCompleted && (<div className="absolute inset-0 rounded-full bg-white/50 animate-ping motion-reduce:animate-none pointer-events-none" style={{ animationDuration: '1s', animationTimingFunction: 'cubic-bezier(0, 0, 0.2, 1)' }} />)}
                                     {taskCompleted && (<div className="absolute inset-0 rounded-full bg-yellow-300/70 pointer-events-none" />)}
-                                    <CheckCircle className={`w-7 h-7 text-white drop-shadow-lg transition-transform group-hover:scale-110 relative z-10 ${taskCompleted ? '' : 'animate-bounce'}`} />
+                                    <CheckCircle className={`w-7 h-7 text-white drop-shadow-lg transition-transform motion-reduce:transition-none group-hover:scale-110 relative z-10 ${taskCompleted ? '' : 'animate-bounce motion-reduce:animate-none'}`} />
                                   </div>
                                 </button>
                               ) : (
@@ -238,9 +266,9 @@ export default function ShowdownVSPage() {
                               isSelected ? (
                                 <button onClick={(e) => { e.stopPropagation(); handleComplete(); }} className="relative group cursor-pointer" title="Mark as Done" aria-label="Mark as Done">
                                   <div className="relative">
-                                    {!taskCompleted && (<div className="absolute inset-0 rounded-full bg-white/50 animate-ping pointer-events-none" style={{ animationDuration: '1s', animationTimingFunction: 'cubic-bezier(0, 0, 0.2, 1)' }} />)}
+                                    {!taskCompleted && (<div className="absolute inset-0 rounded-full bg-white/50 animate-ping motion-reduce:animate-none pointer-events-none" style={{ animationDuration: '1s', animationTimingFunction: 'cubic-bezier(0, 0, 0.2, 1)' }} />)}
                                     {taskCompleted && (<div className="absolute inset-0 rounded-full bg-yellow-300/70 pointer-events-none" />)}
-                                    <CheckCircle className={`w-7 h-7 text-white drop-shadow-lg transition-transform group-hover:scale-110 relative z-10 ${taskCompleted ? '' : 'animate-bounce'}`} />
+                                    <CheckCircle className={`w-7 h-7 text-white drop-shadow-lg transition-transform motion-reduce:transition-none group-hover:scale-110 relative z-10 ${taskCompleted ? '' : 'animate-bounce motion-reduce:animate-none'}`} />
                                   </div>
                                 </button>
                               ) : (
@@ -384,6 +412,19 @@ export default function ShowdownVSPage() {
               <div className="flex justify-end gap-2">
                 <button onClick={() => { setShowSwitchModal(false); setPendingSelectId(null); }} className={`${darkMode ? 'border-amber-700 text-amber-300 hover:bg-amber-900/30' : 'border-orange-300 text-orange-700 hover:bg-orange-50'} px-4 py-2 rounded-lg border-2 font-medium`}>Cancel</button>
                 <button onClick={() => { setTimerRunning(false); setTimerSeconds(0); if (pendingSelectId) setSelectedId(pendingSelectId); setPendingSelectId(null); setShowSwitchModal(false); }} className={`${darkMode ? 'bg-gradient-to-r from-amber-700 to-orange-800 hover:from-amber-600 hover:to-orange-700 text-amber-50' : 'bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white'} px-4 py-2 rounded-lg font-semibold`}>Switch Task</button>
+              </div>
+            </div>
+          </div>
+        )}
+        {/* Guard: need at least 4 ranked tasks */}
+        {showRankGuard && (
+          <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+            <div className={`${darkMode ? 'bg-stone-900/95 border-amber-600' : 'bg-white border-orange-400'} max-w-md w-full rounded-2xl shadow-2xl border-2 p-6`}>
+              <h2 className={`${darkMode ? 'text-amber-100' : 'text-gray-900'} text-xl font-bold mb-2`}>Rank a few tasks first</h2>
+              <p className={`${darkMode ? 'text-amber-300/80' : 'text-gray-700'} text-sm mb-4`}>You need to rank at least 4 tasks that haven't been marked as complete to start a showdown. Current ranked: {rankedCountDisplay}. Visit the ranking page to get set up.</p>
+              <div className="flex justify-end gap-2">
+                <Link href="/showdown/rank" className={`${darkMode ? 'bg-gradient-to-r from-amber-700 to-orange-800 hover:from-amber-600 hover:to-orange-700 text-amber-50' : 'bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white'} px-4 py-2 rounded-lg font-semibold`}>Go to Ranking</Link>
+                <Link href="/showdown/landing" className={`${darkMode ? 'border-amber-700 text-amber-300 hover:bg-amber-900/30' : 'border-orange-300 text-orange-700 hover:bg-orange-50'} px-4 py-2 rounded-lg border-2 text-sm font-medium`}>Return to Showdown Landing</Link>
               </div>
             </div>
           </div>

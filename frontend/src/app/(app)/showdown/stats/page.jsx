@@ -1,7 +1,8 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Clock, Trophy, Heart } from 'lucide-react';
+import { Clock, Trophy, Heart, Home, ArrowDownUp, Play } from 'lucide-react';
+import Link from 'next/link';
 import { useTheme } from '@/components/ThemeContext';
 import { getJson } from '@/lib/api';
 
@@ -70,6 +71,21 @@ export default function ShowdownStatsPage() {
                     <p className={`${darkMode ? 'text-amber-300/70' : 'text-gray-600'} text-xs`}>Total Peaches Peached</p>
                   </div>
                 </div>
+              </div>
+              {/* Actions */}
+              <div className="flex justify-center gap-3 mt-6 flex-wrap">
+                <Link href="/showdown/vs" className={`${darkMode ? 'border-amber-700 text-amber-300 hover:bg-amber-900/30' : 'border-orange-300 text-orange-700 hover:bg-orange-50'} inline-flex items-center gap-2 px-4 py-2 rounded-lg border-2 text-sm font-medium`}>
+                  <Play className="w-4 h-4"/>
+                  Start Showdown
+                </Link>
+                <Link href="/showdown/rank" className={`${darkMode ? 'border-amber-700 text-amber-300 hover:bg-amber-900/30' : 'border-orange-300 text-orange-700 hover:bg-orange-50'} inline-flex items-center gap-2 px-4 py-2 rounded-lg border-2 text-sm font-medium`}>
+                  <ArrowDownUp className="w-4 h-4"/>
+                  Rank Tasks
+                </Link>
+                <Link href="/dashboard" className={`${darkMode ? 'border-amber-700 text-amber-300 hover:bg-amber-900/30' : 'border-orange-300 text-orange-700 hover:bg-orange-50'} inline-flex items-center gap-2 px-4 py-2 rounded-lg border-2 text-sm font-medium`}>
+                  <Home className="w-4 h-4"/>
+                  Dashboard
+                </Link>
               </div>
             </div>
           )}

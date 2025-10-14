@@ -3,10 +3,30 @@
 import Link from 'next/link';
 import { ArrowDownUp, Play, BarChart3, Home } from 'lucide-react';
 import { useTheme } from '@/components/ThemeContext';
+import { useState } from 'react';
+import { getJson } from '@/lib/api';
 
 export default function ShowdownLandingPage() {
   const { theme } = useTheme();
   const darkMode = theme === 'dark';
+  const [showStartGuard, setShowStartGuard] = useState(false);
+  const [rankedCount, setRankedCount] = useState(0);
+
+  const tryStartShowdown = async () => {
+    try {
+      const tasks = await getJson('/tasks');
+      const active = tasks.filter((t) => !t.completed);
+      const ranked = active.filter((t) => Number(t.dislike_rank || 0) > 0);
+      if (active.length >= 4 && ranked.length < 4) {
+        setRankedCount(ranked.length);
+        setShowStartGuard(true);
+        return;
+      }
+      if (typeof window !== 'undefined') window.location.href = '/showdown/vs';
+    } catch {
+      if (typeof window !== 'undefined') window.location.href = '/showdown/vs';
+    }
+  };
 
   return (
     <div className={darkMode ? 'dark' : ''}>
@@ -50,7 +70,7 @@ export default function ShowdownLandingPage() {
               </div>
             </Link>
 
-            <Link href="/showdown/vs" className={`${darkMode ? 'bg-stone-900/80 border-amber-900/30 hover:border-amber-600' : 'bg-white border-orange-200 hover:border-orange-400 hover:shadow-orange-200/50'} p-5 rounded-2xl border-2 transition-all hover:scale-105 text-left`}>
+            <button onClick={tryStartShowdown} className={`${darkMode ? 'bg-stone-900/80 border-amber-900/30 hover:border-amber-600' : 'bg-white border-orange-200 hover:border-orange-400 hover:shadow-orange-200/50'} p-5 rounded-2xl border-2 transition-all hover:scale-105 text-left`}>
               <div className="flex items-start gap-3">
                 <div className={`${darkMode ? 'bg-amber-800/50' : 'bg-orange-100'} w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0`}>
                   <Play className={`${darkMode ? 'text-amber-300' : 'text-orange-600'} w-6 h-6`} />
@@ -60,7 +80,7 @@ export default function ShowdownLandingPage() {
                   <p className={`${darkMode ? 'text-amber-300/70' : 'text-gray-600'} text-sm`}>Two tasks face off — you pick the lesser evil and get started!</p>
                 </div>
               </div>
-            </Link>
+            </button>
 
             <Link href="/showdown/stats" className={`${darkMode ? 'bg-stone-900/80 border-amber-900/30 hover:border-amber-600' : 'bg-white border-orange-200 hover:border-orange-400 hover:shadow-orange-200/50'} p-5 rounded-2xl border-2 transition-all hover:scale-105 text-left`}>
               <div className="flex items-start gap-3">
@@ -101,6 +121,18 @@ export default function ShowdownLandingPage() {
           <p className={`${darkMode ? 'text-amber-300/70' : 'text-gray-600'} text-xs italic text-center`}>"The best way to get started is to quit talking and begin doing."</p>
         </div>
       </div>
+      {showStartGuard && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className={`${darkMode ? 'bg-stone-900/95 border-amber-600' : 'bg-white border-orange-400'} max-w-md w-full rounded-2xl shadow-2xl border-2 p-6`}>
+            <h2 className={`${darkMode ? 'text-amber-100' : 'text-gray-900'} text-xl font-bold mb-2`}>Rank a few tasks first</h2>
+            <p className={`${darkMode ? 'text-amber-300/80' : 'text-gray-700'} text-sm mb-4`}>You need to rank at least 4 tasks that haven't been marked as complete to start a showdown. Current ranked: {rankedCount}.</p>
+            <div className="flex justify-end gap-2">
+              <Link href="/showdown/rank" className={`${darkMode ? 'bg-gradient-to-r from-amber-700 to-orange-800 hover:from-amber-600 hover:to-orange-700 text-amber-50' : 'bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white'} px-4 py-2 rounded-lg font-semibold`}>Go to Ranking</Link>
+              <button onClick={() => setShowStartGuard(false)} className={`${darkMode ? 'border-amber-700 text-amber-300 hover:bg-amber-900/30' : 'border-orange-300 text-orange-700 hover:bg-orange-50'} px-4 py-2 rounded-lg border-2 text-sm font-medium`}>Close</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
-import { Swords, ThumbsDown, Trophy, Zap } from 'lucide-react';
+import { Swords, ThumbsDown, Trophy, Zap, Play, BarChart3, Home } from 'lucide-react';
 import { getJson, patchJson } from '@/lib/api';
 import { useTheme } from '@/components/ThemeContext';
 
@@ -20,6 +20,7 @@ export default function ShowdownRankPage() {
   const [deltas, setDeltas] = useState({}); // { taskId: +n }
   const [showCompletionModal, setShowCompletionModal] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [showStartGuard, setShowStartGuard] = useState(false);
 
   // Load incomplete tasks
   useEffect(() => {
@@ -54,6 +55,35 @@ export default function ShowdownRankPage() {
     return [pool[i], pool[j]];
   }, [tasks, deltas]);
 
+  const eff = useCallback((t) => (Number(t.dislike_rank || 0) + Number(deltas[t._id] || 0)), [deltas]);
+  const rankedCount = useMemo(() => tasks.filter((t) => eff(t) > 0).length, [tasks, eff]);
+
+  const flushUpdates = useCallback(async () => {
+    if (!tasks.length || !Object.keys(deltas).length) return;
+    setSaving(true);
+    try {
+      for (const t of tasks) {
+        const d = deltas[t._id] || 0;
+        if (!d) continue;
+        const next = (t.dislike_rank || 0) + d;
+        await patchJson(`/tasks/${t._id}`, { dislike_rank: next });
+      }
+    } finally {
+      setSaving(false);
+    }
+  }, [tasks, deltas]);
+
+  const startShowdown = useCallback(async () => {
+    if (rankedCount < 4) {
+      setShowStartGuard(true);
+      return;
+    }
+    try {
+      await flushUpdates();
+    } catch {}
+    if (typeof window !== 'undefined') window.location.href = '/showdown/vs';
+  }, [rankedCount, flushUpdates]);
+
   useEffect(() => {
     if (!loading) setPair(pickPair());
   }, [loading, pickPair]);
@@ -70,21 +100,6 @@ export default function ShowdownRankPage() {
       setShowCompletionModal(true);
     }
   };
-
-  const flushUpdates = useCallback(async () => {
-    if (!tasks.length || !Object.keys(deltas).length) return;
-    setSaving(true);
-    try {
-      for (const t of tasks) {
-        const d = deltas[t._id] || 0;
-        if (!d) continue;
-        const next = (t.dislike_rank || 0) + d;
-        await patchJson(`/tasks/${t._id}`, { dislike_rank: next });
-      }
-    } finally {
-      setSaving(false);
-    }
-  }, [tasks, deltas]);
 
   if (loading) {
     return (
@@ -158,6 +173,22 @@ export default function ShowdownRankPage() {
             </div>
           </div>
 
+          {/* Actions below ranking */}
+          <div className="flex justify-center gap-3 mt-4 flex-wrap">
+            <button onClick={startShowdown} className={`${darkMode ? 'border-amber-700 text-amber-300 hover:bg-amber-900/30' : 'border-orange-300 text-orange-700 hover:bg-orange-50'} inline-flex items-center gap-2 px-4 py-2 rounded-lg border-2 text-sm font-medium`}>
+              <Play className="w-4 h-4"/>
+              Start Showdown
+            </button>
+            <Link href="/showdown/stats" className={`${darkMode ? 'border-amber-700 text-amber-300 hover:bg-amber-900/30' : 'border-orange-300 text-orange-700 hover:bg-orange-50'} inline-flex items-center gap-2 px-4 py-2 rounded-lg border-2 text-sm font-medium`}>
+              <BarChart3 className="w-4 h-4"/>
+              Showdown Stats
+            </Link>
+            <Link href="/dashboard" className={`${darkMode ? 'border-amber-700 text-amber-300 hover:bg-amber-900/30' : 'border-orange-300 text-orange-700 hover:bg-orange-50'} inline-flex items-center gap-2 px-4 py-2 rounded-lg border-2 text-sm font-medium`}>
+              <Home className="w-4 h-4"/>
+              Dashboard
+            </Link>
+          </div>
+
           {/* Completion Modal */}
           {showCompletionModal && (
             <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
@@ -203,6 +234,19 @@ export default function ShowdownRankPage() {
                   <Link href="/dashboard" className={`${darkMode ? 'border-amber-800/50 text-amber-400/70 hover:bg-stone-800/30 hover:text-amber-300' : 'border-orange-200 text-gray-600 hover:bg-orange-50 hover:text-gray-800'} w-full py-3 rounded-xl font-medium transition border flex items-center justify-center gap-2`}>Back to Main Menu</Link>
                 </div>
                 {error && <p className="mt-4 text-center text-sm text-red-600">{error}</p>}
+              </div>
+            </div>
+          )}
+
+          {/* Guard modal: need at least 4 ranked tasks */}
+          {showStartGuard && (
+            <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+              <div className={`${darkMode ? 'bg-stone-900/95 border-amber-600' : 'bg-white border-orange-400'} max-w-md w-full rounded-2xl shadow-2xl border-2 p-6`}>
+                <h2 className={`${darkMode ? 'text-amber-100' : 'text-gray-900'} text-xl font-bold mb-2`}>Rank a few more tasks</h2>
+                <p className={`${darkMode ? 'text-amber-300/80' : 'text-gray-700'} text-sm mb-4`}>You need at least 4 ranked tasks to start a showdown. Current ranked: {rankedCount}.</p>
+                <div className="flex justify-end gap-2">
+                  <button onClick={() => setShowStartGuard(false)} className={`${darkMode ? 'border-amber-700 text-amber-300 hover:bg-amber-900/30' : 'border-orange-300 text-orange-700 hover:bg-orange-50'} px-4 py-2 rounded-lg border-2 text-sm font-medium`}>OK</button>
+                </div>
               </div>
             </div>
           )}

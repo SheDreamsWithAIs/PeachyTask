@@ -155,8 +155,30 @@ async def showdown_complete(payload: Dict[str, Any], request: Request) -> Dict[s
             await db[users.collection_name].update_one({"_id": udoc["_id"]}, {"$inc": {"peaches_peached_total": inc}})
     except Exception:
         pass
+    # Load updated task and compute simple stats for convenience
     updated = await coll.find_one({"_id": oid})
-    return _serialize_task(updated)
+    serialized = _serialize_task(updated)
+    peaches_total = 0
+    total_completed = 0
+    try:
+        users = UserModel(db)
+        udoc = await users.get_by_id_str(user_id)
+        if udoc:
+            peaches_total = int(udoc.get("peaches_peached_total") or 0)
+        total_completed = await coll.count_documents({
+            "user_id": ObjectId(user_id),
+            "completed": True,
+            "completed_via_showdown": True,
+        })
+    except Exception:
+        pass
+    # Return task fields plus convenience totals and the increment used (if set)
+    out: Dict[str, Any] = {**serialized}
+    if 'inc' in locals():
+        out["peaches_increment"] = inc
+    out["peaches_peached_total"] = peaches_total
+    out["total_completed"] = total_completed
+    return out
 
 
 @router.get("/showdown/stats")

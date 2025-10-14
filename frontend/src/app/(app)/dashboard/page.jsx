@@ -297,6 +297,7 @@ export default function DashboardPage() {
 	const [filter, setFilter] = useState('all');
 	const [activeLabelIds, setActiveLabelIds] = useState([]);
 	const [error, setError] = useState('');
+	const [authExpired, setAuthExpired] = useState(false);
 	const [fieldErrors, setFieldErrors] = useState({});
 	const [showNew, setShowNew] = useState(false);
 	const [loading, setLoading] = useState(true);
@@ -314,7 +315,13 @@ export default function DashboardPage() {
 	useEffect(() => {
 		setLoading(true);
 		Promise.all([
-			getJson('/tasks').then(setTasks),
+			getJson('/tasks').then(setTasks).catch((e)=>{
+				if (e && e.status === 401) {
+					setAuthExpired(true);
+					throw e;
+				}
+				throw e;
+			}),
 			getJson('/labels').then(setLabels).catch(() => {}),
 		])
 			.catch((e) => setError(e.message || 'Failed to load tasks'))
@@ -477,7 +484,14 @@ export default function DashboardPage() {
 						New Task
 					</button>
 				</div>
-				{error && <div className="mb-3 text-sm text-red-700 bg-red-100 border border-red-200 rounded p-2">{error}</div>}
+				{authExpired ? (
+					<div className="mb-3 text-sm text-amber-800 bg-amber-100 border border-amber-200 rounded p-3 flex items-center justify-between gap-3">
+						<span>Your session has expired. Please sign in again to view your tasks.</span>
+						<button onClick={()=>{ if (typeof window!== 'undefined') window.location.href='/login'; }} className="px-3 py-1.5 rounded-lg text-white bg-orange-500 hover:bg-orange-600">Sign in</button>
+					</div>
+				) : error ? (
+					<div className="mb-3 text-sm text-red-700 bg-red-100 border border-red-200 rounded p-2">{error}</div>
+				) : null}
 
 				{/* Inline New Task Form */}
 				{showNew && (
