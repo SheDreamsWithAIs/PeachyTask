@@ -1,0 +1,38 @@
+[
+  {
+    "level": 1,
+    "fruits": ["🍑", "🍓", "🍊", "🍋"],
+    "goals": [
+      { "emoji": "🍑", "amount": 8 },
+      { "emoji": "🍓", "amount": 7 },
+      { "emoji": "🍊", "amount": 6 }
+    ]
+  },
+  {
+    "level": 10,
+    "fruits": ["🍑", "🍓", "🍊", "🍋", "🍇"],
+    "goals": [
+      { "emoji": "🍑", "amount": 10 },
+      { "emoji": "🍓", "amount": 8 },
+      { "emoji": "🍊", "amount": 8 }
+    ]
+  },
+  {
+    "level": 20,
+    "fruits": ["🍑", "🍓", "🍊", "🍋", "🍇", "🍉"],
+    "goals": [
+      { "emoji": "🍑", "amount": 12 },
+      { "emoji": "🍓", "amount": 10 },
+      { "emoji": "🍊", "amount": 9 }
+    ]
+  },
+  {
+    "level": 30,
+    "fruits": ["🍑", "🍓", "🍊", "🍋", "🍇", "🍉", "🍒"],
+    "goals": [
+      { "emoji": "🍑", "amount": 12 },
+      { "emoji": "🍓", "amount": 10 },
+      { "emoji": "🍊", "amount": 9 }
+    ]
+  }
+]

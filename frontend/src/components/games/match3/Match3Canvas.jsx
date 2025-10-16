@@ -9,7 +9,7 @@ import { areAdjacent, findMatches, TILE, POWER } from '../../../lib/match3/engin
 // - Handle click-to-select and swap adjacent tiles via onSwap(a,b)
 // - No animations yet; immediate redraw after swap
 
-export default function Match3Canvas({ session, onSwap, onTrySwap, onDeadBoard, tileSize = 56, gap = 4 }) {
+export default function Match3Canvas({ session, onSwap, onTrySwap, onDeadBoard, tileSize = 56, gap = 2 }) {
   const containerRef = useRef(null);
   const appRef = useRef(null);
   const pixiRef = useRef(null);
@@ -24,8 +24,8 @@ export default function Match3Canvas({ session, onSwap, onTrySwap, onDeadBoard, 
       pixiRef.current = PIXI;
 
       const container = containerRef.current;
-      const width = (tileSize + gap) * session.state.cols + gap;
-      const height = (tileSize + gap) * session.state.rows + gap;
+      const width = (tileSize + gap) * session.state.cols - gap;
+      const height = (tileSize + gap) * session.state.rows - gap;
 
       const app = new PIXI.Application();
       const resolution = typeof window !== 'undefined' ? (window.devicePixelRatio || 1) : 1;
@@ -95,8 +95,8 @@ export default function Match3Canvas({ session, onSwap, onTrySwap, onDeadBoard, 
     for (let r = 0; r < session.state.rows; r++) {
       spritesRef.current[r] = [];
       for (let c = 0; c < session.state.cols; c++) {
-        const x = gap + c * (tileSize + gap);
-        const y = gap + r * (tileSize + gap);
+        const x = c * (tileSize + gap);
+        const y = r * (tileSize + gap);
 
         const cell = session.state.grid[r][c];
 

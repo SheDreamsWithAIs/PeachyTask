@@ -174,8 +174,8 @@ export function swapIfValid(
 
   // Resolve until stable, prefer placing power-up at the swap target (b) or source (a)
   const preferred = [b, a];
-  const { totalCleared, cascadeCount } = resolveAll(state, initial, fruits, rng, preferred);
-  return { swapped: true, cleared: totalCleared, cascades: cascadeCount };
+  const { totalCleared, cascadeCount, countsByKind } = resolveAll(state, initial, fruits, rng, preferred);
+  return { swapped: true, cleared: totalCleared, cascades: cascadeCount, countsByKind };
 }
 
 // Session-aware swap: updates score and movesUsed; returns engine swap result
@@ -192,11 +192,14 @@ export function sessionSwap(session, a, b) {
 export function resolveAll(state, initial, fruits = DEFAULT_FRUITS, rng = Math.random, preferredPositions) {
   let totalCleared = 0;
   let cascadeCount = 0;
+  const countsByKind = Object.create(null);
 
   // Clear provided set first (with power placements if any)
   if (initial && initial.toClear && initial.toClear.size > 0) {
     const placements = pickPowerPlacements(state, initial.runsH || [], initial.runsV || [], preferredPositions);
-    totalCleared += clearCollapseRefill(state, initial.toClear, fruits, rng, placements);
+    const step = clearCollapseRefill(state, initial.toClear, fruits, rng, placements);
+    totalCleared += step.cleared;
+    mergeCounts(countsByKind, step.countsByKind);
     cascadeCount++;
   }
 
@@ -205,16 +208,19 @@ export function resolveAll(state, initial, fruits = DEFAULT_FRUITS, rng = Math.r
     const matches = findMatches(state);
     if (matches.toClear.size === 0) break;
     const placements = pickPowerPlacements(state, matches.runsH, matches.runsV, undefined);
-    totalCleared += clearCollapseRefill(state, matches.toClear, fruits, rng, placements);
+    const step = clearCollapseRefill(state, matches.toClear, fruits, rng, placements);
+    totalCleared += step.cleared;
+    mergeCounts(countsByKind, step.countsByKind);
     cascadeCount++;
   }
 
-  return { totalCleared, cascadeCount };
+  return { totalCleared, cascadeCount, countsByKind };
 }
 
 function clearCollapseRefill(state, toClear, fruits, rng, placements) {
   const { rows, cols, grid } = state;
   let cleared = 0;
+  const countsByKind = Object.create(null);
 
   // If we have power placements, ensure the chosen cells are NOT cleared
   const skip = new Set();
@@ -233,7 +239,11 @@ function clearCollapseRefill(state, toClear, fruits, rng, placements) {
   for (const key of toClear) {
     const [r, c] = key.split(',').map(Number);
     if (skip.has(key)) continue;
-    if (grid[r][c]) {
+    const cell = grid[r][c];
+    if (cell) {
+      if (cell.type === TILE.FRUIT) {
+        countsByKind[cell.kind] = (countsByKind[cell.kind] || 0) + 1;
+      }
       grid[r][c] = null;
       cleared++;
     }
@@ -241,22 +251,43 @@ function clearCollapseRefill(state, toClear, fruits, rng, placements) {
 
   // Collapse each column down
   for (let c = 0; c < cols; c++) {
-    let write = rows - 1;
+    // Anchor newly created power-ups in this step within their columns
+    const anchorRows = new Set();
+    if (placements && placements.length) {
+      for (const p of placements) if (p.c === c) anchorRows.add(p.r);
+    }
+
+    const newCol = Array(rows).fill(null);
+    // Keep anchored items in place
+    for (const r of anchorRows) newCol[r] = grid[r][c];
+
+    // Gather non-anchored existing cells from bottom to top
+    const stack = [];
     for (let r = rows - 1; r >= 0; r--) {
       const cell = grid[r][c];
-      if (cell) {
-        grid[write][c] = cell;
-        if (write !== r) grid[r][c] = null;
-        write--;
-      }
+      if (!cell) continue;
+      if (anchorRows.has(r)) continue;
+      stack.push(cell);
     }
-    // Refill from top
-    for (let r = write; r >= 0; r--) {
-      grid[r][c] = { type: TILE.FRUIT, kind: fruits[(rng() * fruits.length) | 0] };
+    // Write downwards, skipping anchored rows
+    let write = rows - 1;
+    while (write >= 0) {
+      if (anchorRows.has(write)) { write--; continue; }
+      const cell = stack.shift();
+      if (cell) newCol[write] = cell; else break;
+      write--;
     }
+    // Fill remaining gaps with new fruits (still skipping anchors)
+    while (write >= 0) {
+      if (anchorRows.has(write)) { write--; continue; }
+      newCol[write] = { type: TILE.FRUIT, kind: fruits[(rng() * fruits.length) | 0] };
+      write--;
+    }
+    // Commit column
+    for (let r = 0; r < rows; r++) grid[r][c] = newCol[r];
   }
 
-  return cleared;
+  return { cleared, countsByKind };
 }
 
 function sameFruit(a, b) {
@@ -321,6 +352,11 @@ function pickPowerPlacements(state, runsH, runsV, preferredPositions) {
   }
 
   return Array.from(chosen.values());
+}
+
+function mergeCounts(target, source) {
+  if (!source) return;
+  for (const k of Object.keys(source)) target[k] = (target[k] || 0) + source[k];
 }
 
 function applyPowerAt(state, r, c, targetFruitKind) {
