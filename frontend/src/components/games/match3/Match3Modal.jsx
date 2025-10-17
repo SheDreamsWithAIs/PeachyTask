@@ -3,7 +3,7 @@
 import { Trophy, Clock, X, Play, Home, CheckCircle } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
-export default function Match3Modal({ open, type, score = 0, elapsedMs = 0, wins, losses, message = '', onClose, onPrimary, onBack }) {
+export default function Match3Modal({ open, type, score = 0, elapsedMs = 0, wins, losses, message = '', onClose, onPrimary, onBack, highlightBack = false }) {
   if (!open) return null;
 
   const isWin = type === 'win' || type === 'nudgeWin';
@@ -11,8 +11,18 @@ export default function Match3Modal({ open, type, score = 0, elapsedMs = 0, wins
   const primaryLabel = isWin ? 'Next Level' : 'New Board';
   const router = useRouter();
 
+	// Custom glow CSS for highlighted back button
+	const glowCss = `
+	@keyframes peachy-glow {
+		0%, 100% { box-shadow: 0 0 0px rgba(249, 115, 22, 0.0); }
+		50% { box-shadow: 0 0 18px rgba(249, 115, 22, 0.75); }
+	}
+	.peachy-glow { animation: peachy-glow 1.8s ease-in-out infinite; }
+	`;
+
   return (
     <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+      {highlightBack && (<style>{glowCss}</style>)}
       <div className="max-w-md w-full rounded-2xl shadow-2xl border-2 p-6 bg-white border-orange-400">
         {/* Celebration/Header */}
         <div className="text-center mb-4">
@@ -78,10 +88,10 @@ export default function Match3Modal({ open, type, score = 0, elapsedMs = 0, wins
             {isWin ? <Play className="w-5 h-5" /> : <Home className="w-5 h-5" />}
             {primaryLabel}
           </button>
-          <button
-            onClick={() => { if (onBack) onBack(); else router.push('/dashboard'); }}
-            className="w-full py-3 rounded-xl font-medium transition border-2 flex items-center justify-center gap-2 border-orange-300 text-orange-700 hover:bg-orange-50"
-          >
+			<button
+				onClick={() => { if (onBack) onBack(); else router.push('/dashboard'); }}
+				className={`w-full py-3 rounded-xl font-medium transition border-2 flex items-center justify-center gap-2 border-orange-300 text-orange-700 hover:bg-orange-50 ${highlightBack ? 'relative peachy-glow ring-4 ring-orange-400/60 ring-offset-2 ring-offset-white' : ''}`}
+			>
             <Home className="w-5 h-5" />
             Back to Tasks
           </button>

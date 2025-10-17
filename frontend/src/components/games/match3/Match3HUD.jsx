@@ -6,6 +6,8 @@ export default function Match3HUD({
 	metrics,
 	goals,
 	onNewBoard,
+	paused,
+	onTogglePause,
 	className = '',
 }) {
 	const score = metrics?.score ?? 0;
@@ -36,12 +38,17 @@ export default function Match3HUD({
 					<div className={`text-2xl font-bold ${moves < 5 ? 'text-red-500' : 'text-gray-900'}`}>{moves}</div>
 				</div>
 				{/* Time */}
-				<div className="bg-orange-50 p-2.5 rounded-lg text-center">
+				<div className="bg-orange-50 p-2 rounded-lg text-center">
 					<div className="flex items-center justify-center gap-1 mb-1">
 						<Clock className="w-4 h-4 text-orange-600" />
 						<span className="text-xs font-medium uppercase tracking-wide text-gray-600">Time</span>
 					</div>
 					<div className="text-2xl font-bold text-gray-900">{formatTimeSeconds(Math.floor(elapsedMs / 1000))}</div>
+					<div className="mt-1">
+						<button onClick={onTogglePause} className="px-2 py-1 rounded-md border text-xs whitespace-nowrap border-orange-300 text-gray-700 hover:bg-orange-50">
+							{paused ? 'Resume' : 'Pause'}
+						</button>
+					</div>
 				</div>
 				{/* Goals and right-side controls */}
 				<div className="col-span-2 flex items-stretch gap-2">
@@ -82,8 +89,13 @@ export default function Match3HUD({
 					<div className="bg-orange-50 flex-1 text-center py-1.5 rounded-lg">
 						<div className={`text-lg font-bold ${moves < 5 ? 'text-red-500' : 'text-gray-900'}`}>{moves}</div>
 					</div>
-					<div className="bg-orange-50 flex-1 text-center py-1.5 rounded-lg">
+					<div className="bg-orange-50 flex-1 text-center py-1 rounded-lg">
 						<div className="text-lg font-bold text-gray-900">{formatTimeSeconds(Math.floor(elapsedMs / 1000))}</div>
+						<div className="mt-0.5">
+							<button onClick={onTogglePause} className="px-2 py-0.5 rounded-md border text-[10px] whitespace-nowrap border-orange-300 text-gray-700 hover:bg-orange-50">
+								{paused ? 'Resume' : 'Pause'}
+							</button>
+						</div>
 					</div>
 				</div>
 				<div className="flex gap-2">

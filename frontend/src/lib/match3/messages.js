@@ -16,9 +16,9 @@ export const nudgesLose = [
 
 export const wins = [
   'Level complete! Peachy progress.',
-  'Sweet match! Want to tackle a task?',
-  'You’re on a roll—carry it to your tasks.',
-  'Victory! Turn it into real-world progress.',
+  'Sweet match! Nice win!',
+  'You’re on a roll!',
+  'Victory!',
 ];
 
 export const losses = [

@@ -13,6 +13,8 @@ import {
   getElapsedMs,
   maybeLevelUp,
   pause,
+  createBoard,
+  resume,
 } from '../../../../lib/match3/engine';
 import { getGoalsForLevel, getFruitsForLevel } from '../../../../lib/match3/config';
 
@@ -57,10 +59,47 @@ export default function Match3Page() {
     setDead(false);
   };
 
+  const handleNextLevel = () => {
+    // increment level
+    session.level += 1;
+    // update fruits per config for new level
+    session.fruits = getFruitsForLevel(session.level, session.fruits);
+    // recreate board with same dimensions using new fruits
+    const { rows, cols } = session.state;
+    session.state = createBoard(rows, cols, session.fruits, session.rng);
+    // reset move count and timer; carry score forward
+    session.movesUsed = 0;
+    session.accumulatedMs = 0;
+    session.lastResumeMs = Date.now();
+    session.paused = false;
+    // goals for new level
+    setGoals(getGoalsForLevel(session.level, session.fruits));
+    // update metrics and re-render
+    setMetrics({ score: session.score, moves: session.movesUsed, elapsedMs: getElapsedMs(session), level: session.level });
+    setSession({ ...session, state: { ...session.state, grid: session.state.grid.map(row => row.slice()) } });
+    setDead(false);
+    setModal(null);
+  };
+
   return (
     <div className="max-w-4xl mx-auto px-4 py-4">
       {/* Unified HUD */}
-      <Match3HUD metrics={metrics} goals={goals} onNewBoard={handleReset} className="mb-2" />
+      <Match3HUD
+        metrics={metrics}
+        goals={goals}
+        onNewBoard={handleReset}
+        paused={session.paused}
+        onTogglePause={() => {
+          if (session.paused) {
+            resume(session);
+          } else {
+            pause(session);
+          }
+          setMetrics(m => ({ ...m, elapsedMs: getElapsedMs(session) }));
+          setSession({ ...session });
+        }}
+        className="mb-2"
+      />
 
       <div className="rounded-2xl p-1 border bg-white/90 mx-auto" style={{ width: '55%', overflow: 'hidden' }}>
         <Match3Canvas
@@ -86,23 +125,18 @@ export default function Match3Page() {
               const allGoalsMet = (nextGoals || goals).every(g => g.remaining === 0);
 
               if (allGoalsMet) {
-                // Advance content for next level and show win modal
-                const newFruits = getFruitsForLevel(session.level, session.fruits);
-                session.fruits = newFruits;
-                setGoals(getGoalsForLevel(session.level, session.fruits));
                 const elapsedMs = getElapsedMs(session);
                 pause(session); // stop timer when won
-                const shouldNudge = gamesPlayed + 1 >= 3 || elapsedMs >= 15 * 60 * 1000;
+                const shouldNudge = ((gamesPlayed + 1) % 4) === 0; // every 4th level
                 const message = shouldNudge ? getRandomMessage(nudgesWin) : getRandomMessage(wins);
                 setGamesPlayed(g => g + 1);
-                setModal({ type: shouldNudge ? 'nudgeWin' : 'win', message });
+                setModal({ type: 'win', message });
               } else if (stuck) {
                 // Only show lose suggestion when stuck and goals not yet complete
-                const elapsedMs = getElapsedMs(session);
-                const shouldNudge = gamesPlayed + 1 >= 3 || elapsedMs >= 15 * 60 * 1000;
+                const shouldNudge = ((gamesPlayed + 1) % 4) === 0; // every 4th round
                 const message = shouldNudge ? getRandomMessage(nudgesLose) : getRandomMessage(losses);
                 setGamesPlayed(g => g + 1);
-                setModal({ type: shouldNudge ? 'nudgeLose' : 'lose', message });
+                setModal({ type: 'lose', message });
               }
             }
             return res;
@@ -119,9 +153,10 @@ export default function Match3Page() {
         wins={gamesPlayed}
         losses={dead ? 1 : undefined}
         message={modal?.message || ''}
-        onPrimary={() => { setModal(null); }}
+        onPrimary={handleNextLevel}
         onClose={() => setModal(null)}
         onBack={undefined}
+        highlightBack={((gamesPlayed) % 4) === 0 && modal?.type === 'lose'}
       />
     </div>
   );
