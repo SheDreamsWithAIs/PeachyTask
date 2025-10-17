@@ -198,7 +198,7 @@ export default function Match3Canvas({ session, onSwap, onTrySwap, onDeadBoard, 
 
         // Predict where power-ups will be placed and keep those tiles fixed during preview animations
         const preferred = [b, a];
-        const predictedPlacements = pickPreviewPowerPlacements(preview.runsH, preview.runsV, preferred);
+        const predictedPlacements = pickPreviewPowerPlacements(preview.runsH, preview.runsV, preview.combos, preferred);
         const fixedSet = new Set(predictedPlacements.map(p => `${p.r},${p.c}`));
 
         // Animate clears and simple drops for the first cascade only (shorter durations)
@@ -251,7 +251,7 @@ function previewSwapMatches(session, a, b) {
   grid[a.r][a.c] = B;
   grid[b.r][b.c] = A;
   const matches = findMatches(tmp);
-  return { valid: matches.toClear.size > 0, toClear: matches.toClear, runsH: matches.runsH, runsV: matches.runsV };
+  return { valid: matches.toClear.size > 0, toClear: matches.toClear, runsH: matches.runsH, runsV: matches.runsV, combos: matches.combos };
 }
 
 function animateClear(toClear, spritesRef, duration = 150, fixedSet) {
@@ -323,47 +323,71 @@ function animateDrop(toClear, spritesRef, tileSize, gap, duration = 160, fixedSe
   return Promise.all(moves);
 }
 
-function pickPreviewPowerPlacements(runsH, runsV, preferredPositions) {
+function pickPreviewPowerPlacements(runsH, runsV, combos, preferredPositions) {
   const placements = [];
   const prefer = Array.isArray(preferredPositions) ? preferredPositions : [];
   const inRunH = (run, pos) => pos && pos.r === run.r && pos.c >= run.c0 && pos.c <= run.c1;
   const inRunV = (run, pos) => pos && pos.c === run.c && pos.r >= run.r0 && pos.r <= run.r1;
+  const placedAt = new Set();
+  const place = (r, c, kind) => {
+    const key = `${r},${c}`;
+    if (placedAt.has(key)) return;
+    placements.push({ r, c, kind });
+    placedAt.add(key);
+  };
+  const hUsed = new Set();
+  const vUsed = new Set();
+  // Composite shapes first: size 6/7 -> BOOM, size 5 -> RAINBOW
+  for (const combo of combos || []) {
+    const kind = combo.size >= 6 ? POWER.BOOM : POWER.RAINBOW;
+    place(combo.r, combo.c, kind);
+    hUsed.add(`${combo.h.r},${combo.h.c0},${combo.h.c1}`);
+    vUsed.add(`${combo.v.c},${combo.v.r0},${combo.v.r1}`);
+  }
   // Horizontal runs
   for (const run of runsH || []) {
+    const key = `${run.r},${run.c0},${run.c1}`;
+    if (hUsed.has(key)) continue;
     if (run.len >= 5) {
+      const isBoom = run.len >= 6;
+      const target = isBoom ? POWER.BOOM : POWER.RAINBOW;
       let placed = false;
       for (const pos of prefer) {
-        if (inRunH(run, pos)) { placements.push({ r: pos.r, c: pos.c, kind: POWER.RAINBOW }); placed = true; break; }
+        if (inRunH(run, pos)) { place(pos.r, pos.c, target); placed = true; break; }
       }
       if (!placed) {
         const center = Math.floor((run.c0 + run.c1) / 2);
-        placements.push({ r: run.r, c: center, kind: POWER.RAINBOW });
+        place(run.r, center, target);
       }
     } else if (run.len === 4) {
       let placed = false;
       for (const pos of prefer) {
-        if (inRunH(run, pos)) { placements.push({ r: pos.r, c: pos.c, kind: POWER.HLINE }); placed = true; break; }
+        if (inRunH(run, pos)) { place(pos.r, pos.c, POWER.HLINE); placed = true; break; }
       }
-      if (!placed) placements.push({ r: run.r, c: run.c1, kind: POWER.HLINE });
+      if (!placed) place(run.r, run.c1, POWER.HLINE);
     }
   }
   // Vertical runs
   for (const run of runsV || []) {
+    const key = `${run.c},${run.r0},${run.r1}`;
+    if (vUsed.has(key)) continue;
     if (run.len >= 5) {
+      const isBoom = run.len >= 6;
+      const target = isBoom ? POWER.BOOM : POWER.RAINBOW;
       let placed = false;
       for (const pos of prefer) {
-        if (inRunV(run, pos)) { placements.push({ r: pos.r, c: pos.c, kind: POWER.RAINBOW }); placed = true; break; }
+        if (inRunV(run, pos)) { place(pos.r, pos.c, target); placed = true; break; }
       }
       if (!placed) {
         const center = Math.floor((run.r0 + run.r1) / 2);
-        placements.push({ r: center, c: run.c, kind: POWER.RAINBOW });
+        place(center, run.c, target);
       }
     } else if (run.len === 4) {
       let placed = false;
       for (const pos of prefer) {
-        if (inRunV(run, pos)) { placements.push({ r: pos.r, c: pos.c, kind: POWER.VLINE }); placed = true; break; }
+        if (inRunV(run, pos)) { place(pos.r, pos.c, POWER.VLINE); placed = true; break; }
       }
-      if (!placed) placements.push({ r: run.r1, c: run.c, kind: POWER.VLINE });
+      if (!placed) place(run.r1, run.c, POWER.VLINE);
     }
   }
   return placements;
@@ -376,6 +400,7 @@ function getDisplayText(cell) {
       case POWER.HLINE: return '➡️';
       case POWER.VLINE: return '⬇️';
       case POWER.RAINBOW: return '🌈';
+      case POWER.BOOM: return '💥';
       default: return '';
     }
   }

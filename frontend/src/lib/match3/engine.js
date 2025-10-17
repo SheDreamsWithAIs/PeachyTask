@@ -7,7 +7,7 @@
 
 export const TILE = { FRUIT: 'fruit', POWER: 'power' };
 
-export const POWER = { HLINE: 'hline', VLINE: 'vline', RAINBOW: 'rainbow' };
+export const POWER = { HLINE: 'hline', VLINE: 'vline', RAINBOW: 'rainbow', BOOM: 'boom' };
 
 // Seven total fruits; progression decides how many are enabled later.
 export const DEFAULT_FRUITS = ['🍑', '🍓', '🍊', '🍋', '🍇', '🍉', '🍒'];
@@ -136,7 +136,18 @@ export function findMatches(state) {
     }
   }
 
-  return { toClear, runsH, runsV };
+  // Composite shapes (T/L/cross): intersection of H and V runs
+  const combos = [];
+  for (const h of runsH) {
+    for (const v of runsV) {
+      if (h.r >= v.r0 && h.r <= v.r1 && v.c >= h.c0 && v.c <= h.c1) {
+        const size = h.len + v.len - 1; // intersection counted once
+        if (size >= 5) combos.push({ r: h.r, c: v.c, size, h, v });
+      }
+    }
+  }
+
+  return { toClear, runsH, runsV, combos };
 }
 
 export function swapIfValid(
@@ -156,8 +167,8 @@ export function swapIfValid(
     const clearedA = A?.type === TILE.POWER ? applyPowerAt(state, a.r, a.c, fruitKindOrNull(B)) : new Set();
     const clearedB = B?.type === TILE.POWER ? applyPowerAt(state, b.r, b.c, fruitKindOrNull(A)) : new Set();
     const union = new Set([...clearedA, ...clearedB]);
-    const { totalCleared, cascadeCount } = resolveAll(state, { toClear: union, runsH: [], runsV: [] }, fruits, rng);
-    return { swapped: true, cleared: totalCleared, cascades: cascadeCount };
+    const { totalCleared, cascadeCount, countsByKind } = resolveAll(state, { toClear: union, runsH: [], runsV: [], combos: [] }, fruits, rng);
+    return { swapped: true, cleared: totalCleared, cascades: cascadeCount, countsByKind };
   }
 
   // Perform tentative swap
@@ -196,7 +207,7 @@ export function resolveAll(state, initial, fruits = DEFAULT_FRUITS, rng = Math.r
 
   // Clear provided set first (with power placements if any)
   if (initial && initial.toClear && initial.toClear.size > 0) {
-    const placements = pickPowerPlacements(state, initial.runsH || [], initial.runsV || [], preferredPositions);
+    const placements = pickPowerPlacements(state, initial.runsH || [], initial.runsV || [], initial.combos || [], preferredPositions);
     const step = clearCollapseRefill(state, initial.toClear, fruits, rng, placements);
     totalCleared += step.cleared;
     mergeCounts(countsByKind, step.countsByKind);
@@ -207,7 +218,7 @@ export function resolveAll(state, initial, fruits = DEFAULT_FRUITS, rng = Math.r
   for (;;) {
     const matches = findMatches(state);
     if (matches.toClear.size === 0) break;
-    const placements = pickPowerPlacements(state, matches.runsH, matches.runsV, undefined);
+    const placements = pickPowerPlacements(state, matches.runsH, matches.runsV, matches.combos || [], undefined);
     const step = clearCollapseRefill(state, matches.toClear, fruits, rng, placements);
     totalCleared += step.cleared;
     mergeCounts(countsByKind, step.countsByKind);
@@ -298,14 +309,14 @@ function fruitKindOrNull(cell) {
   return cell && cell.type === TILE.FRUIT ? cell.kind : null;
 }
 
-function pickPowerPlacements(state, runsH, runsV, preferredPositions) {
+function pickPowerPlacements(state, runsH, runsV, combos, preferredPositions) {
   // Determine where to spawn power tiles from runs; remove duplicates preferring RAINBOW over lines
   const chosen = new Map(); // key -> {r,c,kind}
 
   const assign = (r, c, kind) => {
     const key = `${r},${c}`;
     const existing = chosen.get(key);
-    if (!existing || (kind === POWER.RAINBOW && existing.kind !== POWER.RAINBOW)) {
+    if (!existing || (kind === POWER.RAINBOW && existing.kind !== POWER.RAINBOW) || (kind === POWER.BOOM)) {
       chosen.set(key, { r, c, kind });
     }
   };
@@ -314,15 +325,30 @@ function pickPowerPlacements(state, runsH, runsV, preferredPositions) {
   const inRunH = (run, pos) => pos && pos.r === run.r && pos.c >= run.c0 && pos.c <= run.c1;
   const inRunV = (run, pos) => pos && pos.c === run.c && pos.r >= run.r0 && pos.r <= run.r1;
 
+  // Handle composite shapes first (T/L/cross)
+  const hConsumed = new Set();
+  const vConsumed = new Set();
+  for (const combo of combos || []) {
+    // size 6 or 7 -> BOOM; size 5 -> RAINBOW
+    const kind = combo.size >= 6 ? POWER.BOOM : POWER.RAINBOW;
+    assign(combo.r, combo.c, kind);
+    hConsumed.add(`${combo.h.r},${combo.h.c0},${combo.h.c1}`);
+    vConsumed.add(`${combo.v.c},${combo.v.r0},${combo.v.r1}`);
+  }
+
   for (const run of runsH) {
+    const key = `${run.r},${run.c0},${run.c1}`;
+    if (hConsumed.has(key)) continue;
     if (run.len >= 5) {
+      const isBoom = run.len >= 6;
+      const targetKind = isBoom ? POWER.BOOM : POWER.RAINBOW;
       let placed = false;
       for (const pos of prefer) {
-        if (inRunH(run, pos)) { assign(pos.r, pos.c, POWER.RAINBOW); placed = true; break; }
+        if (inRunH(run, pos)) { assign(pos.r, pos.c, targetKind); placed = true; break; }
       }
       if (!placed) {
         const center = Math.floor((run.c0 + run.c1) / 2);
-        assign(run.r, center, POWER.RAINBOW);
+        assign(run.r, center, targetKind);
       }
     } else if (run.len === 4) {
       let placed = false;
@@ -333,14 +359,18 @@ function pickPowerPlacements(state, runsH, runsV, preferredPositions) {
     }
   }
   for (const run of runsV) {
+    const key = `${run.c},${run.r0},${run.r1}`;
+    if (vConsumed.has(key)) continue;
     if (run.len >= 5) {
+      const isBoom = run.len >= 6;
+      const targetKind = isBoom ? POWER.BOOM : POWER.RAINBOW;
       let placed = false;
       for (const pos of prefer) {
-        if (inRunV(run, pos)) { assign(pos.r, pos.c, POWER.RAINBOW); placed = true; break; }
+        if (inRunV(run, pos)) { assign(pos.r, pos.c, targetKind); placed = true; break; }
       }
       if (!placed) {
         const center = Math.floor((run.r0 + run.r1) / 2);
-        assign(center, run.c, POWER.RAINBOW);
+        assign(center, run.c, targetKind);
       }
     } else if (run.len === 4) {
       let placed = false;
@@ -393,6 +423,13 @@ function applyPowerAt(state, r, c, targetFruitKind) {
       } else {
         // If no target, clear the entire board of fruits (fallback minimal behavior)
         for (let rr = 0; rr < rows; rr++) for (let cc = 0; cc < cols; cc++) add(rr, cc);
+      }
+      break;
+    }
+    case POWER.BOOM: {
+      // Clear the entire board (fruits and powers)
+      for (let rr = 0; rr < rows; rr++) {
+        for (let cc = 0; cc < cols; cc++) add(rr, cc);
       }
       break;
     }
